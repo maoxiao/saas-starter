@@ -9,6 +9,7 @@ import { LOCALE_COOKIE_NAME, routing } from '@/i18n/routing';
 import { sendEmail } from '@/mail';
 import { subscribe } from '@/newsletter';
 import { type User, betterAuth } from 'better-auth';
+import { emailHarmony } from 'better-auth-harmony';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { admin } from 'better-auth/plugins';
 import { parse as parseCookies } from 'cookie';
@@ -133,6 +134,14 @@ export const auth = betterAuth({
       defaultBanExpiresIn: undefined,
       bannedUserMessage:
         'You have been banned from this application. Please contact support if you believe this is an error.',
+    }),
+    // https://github.com/gekorm/better-auth-harmony
+    // Email normalization and validation to prevent duplicate registrations
+    emailHarmony({
+      // Don't allow login with any version of the unnormalized email address
+      // e.g., user signed up with johndoe@googlemail.com can't login with john.doe@gmail.com
+      // e.g., user signed up with johndoe@googlemail.com can't login with johndoe+abc@gmail.com
+      allowNormalizedSignin: false,
     }),
   ],
   onAPIError: {

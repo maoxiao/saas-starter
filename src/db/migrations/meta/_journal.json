@@ -50,6 +50,13 @@
       "when": 1758338199045,
       "tag": "0006_ambitious_annihilus",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1766671808158,
+      "tag": "0007_empty_captain_universe",
+      "breakpoints": true
     }
   ]
 }
