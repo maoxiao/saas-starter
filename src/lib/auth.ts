@@ -44,7 +44,8 @@ export const auth = betterAuth({
     freshAge: 0 /* 60 * 60 * 24 */,
   },
   emailAndPassword: {
-    enabled: true,
+    // https://discord.com/channels/1300839113142046730/1300839113594769431/1454280549060444393
+    enabled: websiteConfig.auth.enableCredentialLogin ?? false,
     // https://www.better-auth.com/docs/concepts/email#2-require-email-verification
     requireEmailVerification: true,
     // https://www.better-auth.com/docs/authentication/email-password#forget-password
