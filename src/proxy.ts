@@ -1,4 +1,5 @@
 import { getSessionCookie } from 'better-auth/cookies';
+import { isMarkdownPreferred } from 'fumadocs-core/negotiation';
 import createMiddleware from 'next-intl/middleware';
 import { type NextRequest, NextResponse } from 'next/server';
 import {
@@ -36,6 +37,25 @@ const intlMiddleware = createMiddleware(routing);
 export default async function proxy(req: NextRequest) {
   const { nextUrl } = req;
   console.log('>> proxy start, pathname', nextUrl.pathname);
+
+  // When AI agents request docs with markdown preference, serve markdown content
+  // https://www.fumadocs.dev/docs/integrations/llms#accept
+  if (isMarkdownPreferred(req)) {
+    const pathname = nextUrl.pathname;
+    // Match pattern: /:locale/docs/*path.mdx (e.g., /en/docs/some-page.mdx)
+    const localeDocsMatch = pathname.match(/^\/([^/]+)\/docs\/(.+\.mdx)$/);
+    if (localeDocsMatch) {
+      const [, locale, restPath] = localeDocsMatch;
+      // Only rewrite if locale is valid
+      if (LOCALES.includes(locale)) {
+        // Remove .mdx extension and rewrite to llms.mdx route
+        const pathWithoutMdx = restPath.replace(/\.mdx$/, '');
+        const result = `/${locale}/docs/llms.mdx/${pathWithoutMdx}`;
+        console.log('<< proxy end, rewriting to LLM markdown:', result);
+        return NextResponse.rewrite(new URL(result, nextUrl));
+      }
+    }
+  }
 
   // Handle internal docs link redirection for internationalization
   // Check if this is a docs page without locale prefix
