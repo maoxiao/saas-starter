@@ -1,5 +1,6 @@
 import * as Preview from '@/components/docs';
 import { getMDXComponents } from '@/components/docs/mdx-components';
+import { LLMCopyButton, ViewOptions } from '@/components/page-actions';
 import { PremiumBadge } from '@/components/premium/premium-badge';
 import { PremiumGuard } from '@/components/premium/premium-guard';
 import {
@@ -10,6 +11,7 @@ import {
 import { LOCALES } from '@/i18n/routing';
 import { constructMetadata } from '@/lib/metadata';
 import { source } from '@/lib/source';
+import { getMarkdownUrlWithLocale } from '@/lib/urls/urls';
 import Link from 'fumadocs-core/link';
 import {
   DocsBody,
@@ -98,6 +100,11 @@ export default async function DocPage({ params }: DocPageProps) {
   // This allows the page to remain static while still protecting premium content
   const MDX = page.data.body;
 
+  // Build markdownUrl with locale prefix for LLM markdown endpoint
+  // page.url might already include locale prefix (e.g., /zh/docs/comparisons)
+  // or might not (e.g., /docs/what-is-fumadocs), so we need to normalize it
+  const markdownUrl = getMarkdownUrlWithLocale(page.url, locale);
+
   return (
     <DocsPage
       toc={page.data.toc}
@@ -109,6 +116,13 @@ export default async function DocPage({ params }: DocPageProps) {
       <DocsTitle>{page.data.title}</DocsTitle>
       {premium && <PremiumBadge size="sm" className="mt-2" />}
       <DocsDescription>{page.data.description}</DocsDescription>
+      <div className="flex flex-row gap-2 items-center border-b pb-6">
+        <LLMCopyButton markdownUrl={markdownUrl} />
+        <ViewOptions
+          markdownUrl={markdownUrl}
+          githubUrl={`https://github.com/MkSaaSHQ/mksaas-template/blob/main/content/docs/${page.path}`}
+        />
+      </div>
       <DocsBody>
         {/* Preview Rendered Component */}
         {preview ? <PreviewRenderer preview={preview} /> : null}

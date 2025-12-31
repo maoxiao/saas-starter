@@ -59,6 +59,16 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async rewrites() {
+    return [
+      // Rewrite markdown requests to llms.mdx route
+      // All markdownUrl includes locale prefix (e.g., /en/docs/xxx.mdx)
+      {
+        source: '/:locale/docs/:path*.mdx',
+        destination: '/:locale/docs/llms.mdx/:path*',
+      },
+    ];
+  },
 };
 
 /**
