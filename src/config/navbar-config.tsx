@@ -80,46 +80,6 @@ export function useNavbarLinks(): NestedMenuItem[] {
         ]
       : []),
     {
-      title: t('ai.title'),
-      items: [
-        {
-          title: t('ai.items.text.title'),
-          description: t('ai.items.text.description'),
-          icon: <SquarePenIcon className="size-4 shrink-0" />,
-          href: Routes.AIText,
-          external: false,
-        },
-        {
-          title: t('ai.items.image.title'),
-          description: t('ai.items.image.description'),
-          icon: <ImageIcon className="size-4 shrink-0" />,
-          href: Routes.AIImage,
-          external: false,
-        },
-        {
-          title: t('ai.items.chat.title'),
-          description: t('ai.items.chat.description'),
-          icon: <MessageCircleIcon className="size-4 shrink-0" />,
-          href: Routes.AIChat,
-          external: false,
-        },
-        // {
-        //   title: t('ai.items.video.title'),
-        //   description: t('ai.items.video.description'),
-        //   icon: <FilmIcon className="size-4 shrink-0" />,
-        //   href: Routes.AIVideo,
-        //   external: false,
-        // },
-        // {
-        //   title: t('ai.items.audio.title'),
-        //   description: t('ai.items.audio.description'),
-        //   icon: <AudioLinesIcon className="size-4 shrink-0" />,
-        //   href: Routes.AIAudio,
-        //   external: false,
-        // },
-      ],
-    },
-    {
       title: t('pages.title'),
       items: [
         {
