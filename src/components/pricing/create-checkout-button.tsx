@@ -14,13 +14,13 @@ interface CheckoutButtonProps {
   priceId: string;
   metadata?: Record<string, string>;
   variant?:
-    | 'default'
-    | 'outline'
-    | 'destructive'
-    | 'secondary'
-    | 'ghost'
-    | 'link'
-    | null;
+  | 'default'
+  | 'outline'
+  | 'destructive'
+  | 'secondary'
+  | 'ghost'
+  | 'link'
+  | null;
   size?: 'default' | 'sm' | 'lg' | 'icon' | null;
   className?: string;
   children?: React.ReactNode;
@@ -53,6 +53,27 @@ export function CheckoutButton({
 
       const mergedMetadata = metadata ? { ...metadata } : {};
 
+      // Add session attribution for payment tracking
+      if (typeof window !== 'undefined') {
+        const { getSessionAttribution } = await import('@/components/tracking/attribution-tracker');
+        const sessionAttribution = getSessionAttribution();
+        if (sessionAttribution.sessionLandingPage) {
+          mergedMetadata.sessionLandingPage = sessionAttribution.sessionLandingPage;
+        }
+        if (sessionAttribution.sessionReferrer) {
+          mergedMetadata.sessionReferrer = sessionAttribution.sessionReferrer;
+        }
+        if (sessionAttribution.sessionSource) {
+          mergedMetadata.sessionSource = sessionAttribution.sessionSource;
+        }
+        if (sessionAttribution.sessionMedium) {
+          mergedMetadata.sessionMedium = sessionAttribution.sessionMedium;
+        }
+        if (sessionAttribution.sessionCampaign) {
+          mergedMetadata.sessionCampaign = sessionAttribution.sessionCampaign;
+        }
+      }
+
       // add promotekit_referral to metadata if enabled promotekit affiliate
       if (websiteConfig.features.enablePromotekitAffiliate) {
         const promotekitReferral =
@@ -73,11 +94,11 @@ export function CheckoutButton({
         const affonsoReferral =
           typeof document !== 'undefined'
             ? (() => {
-                const match = document.cookie.match(
-                  /(?:^|; )affonso_referral=([^;]*)/
-                );
-                return match ? decodeURIComponent(match[1]) : null;
-              })()
+              const match = document.cookie.match(
+                /(?:^|; )affonso_referral=([^;]*)/
+              );
+              return match ? decodeURIComponent(match[1]) : null;
+            })()
             : null;
         if (affonsoReferral) {
           console.log(

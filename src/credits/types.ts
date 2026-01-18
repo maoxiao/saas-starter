@@ -44,10 +44,10 @@ export interface CreditTransaction {
   type: string;                            // Transaction type (CREDIT_TRANSACTION_TYPE)
   description: string | null;              // Transaction description
   amount: number;                          // Credit amount (positive for earning, negative for spending)
-  remainingAmount: number | null;          // Remaining credit amount (for tracking expiration)
+  balance: number | null;                  // Remaining credit balance (for tracking expiration)
   paymentId: string | null;                // Associated invoice ID
   expirationDate: Date | null;             // Credit expiration date
-  expirationDateProcessedAt: Date | null;  // Timestamp when expiration was processed
+  expiredAt: Date | null;                  // Timestamp when expiration was processed
   createdAt: Date;                         // Transaction creation timestamp
   updatedAt: Date;                         // Transaction last update timestamp
 }

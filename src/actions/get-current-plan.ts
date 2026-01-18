@@ -6,7 +6,7 @@ import type { User } from '@/lib/auth-types';
 import { findPlanByPriceId, getAllPricePlans } from '@/lib/price-plan';
 import { userActionClient } from '@/lib/safe-action';
 import {
-  PaymentScenes,
+  PurchaseTypes,
   type PaymentStatus,
   PaymentTypes,
   type PlanInterval,
@@ -47,7 +47,7 @@ export const getCurrentPlanAction = userActionClient
           customerId: payment.customerId,
           type: payment.type,
           status: payment.status,
-          scene: payment.scene,
+          purchaseType: payment.purchaseType,
           interval: payment.interval,
           periodStart: payment.periodStart,
           periodEnd: payment.periodEnd,
@@ -62,10 +62,9 @@ export const getCurrentPlanAction = userActionClient
             eq(payment.paid, true),
             eq(payment.userId, userId),
             or(
-              // Check for completed lifetime payments
               and(
                 eq(payment.type, PaymentTypes.ONE_TIME),
-                eq(payment.scene, PaymentScenes.LIFETIME),
+                eq(payment.purchaseType, PurchaseTypes.LIFETIME),
                 eq(payment.status, 'completed')
               ),
               // Check for active or trialing subscriptions
@@ -87,10 +86,9 @@ export const getCurrentPlanAction = userActionClient
       let activeSubscription: Subscription | null = null;
 
       for (const paymentRecord of payments) {
-        // Check for lifetime plan first (higher priority)
         if (
           paymentRecord.type === PaymentTypes.ONE_TIME &&
-          paymentRecord.scene === PaymentScenes.LIFETIME &&
+          paymentRecord.purchaseType === PurchaseTypes.LIFETIME &&
           paymentRecord.status === 'completed' &&
           !userLifetimePlan // Only take the first (most recent) lifetime plan
         ) {

@@ -80,6 +80,7 @@ export const SocialLoginButton = ({
         },
         onSuccess: (ctx) => {
           // console.log("onSuccess", ctx.data);
+          // Attribution sync is now handled by AttributionTracker after OAuth redirect completes
           setIsLoading(null);
         },
         onError: (ctx) => {

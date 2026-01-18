@@ -2,6 +2,7 @@
 
 import { PostHogProvider } from '@/analytics/posthog-analytics';
 import { QueryProvider } from '@/components/providers/query-provider';
+import { AttributionTracker } from '@/components/tracking/attribution-tracker';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { websiteConfig } from '@/config/website';
 import type { Translations } from 'fumadocs-ui/i18n';
@@ -61,7 +62,10 @@ export function Providers({ children, locale }: ProvidersProps) {
           disableTransitionOnChange
         >
           <RootProvider theme={theme} i18n={{ locale, locales, translations }}>
-            <TooltipProvider>{children}</TooltipProvider>
+            <TooltipProvider>
+              {children}
+              <AttributionTracker />
+            </TooltipProvider>
           </RootProvider>
         </ThemeProvider>
       </QueryProvider>

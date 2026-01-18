@@ -32,10 +32,10 @@ export interface CreditTransaction {
   type: string;
   description: string | null;
   amount: number;
-  remainingAmount: number | null;
+  balance: number | null;
   paymentId: string | null;
   expirationDate: Date | null;
-  expirationDateProcessedAt: Date | null;
+  expiredAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -101,9 +101,8 @@ export function CreditDetailViewer({ transaction }: CreditDetailViewerProps) {
         >
           <div className="flex items-center gap-2">
             <span
-              className={`font-medium ${
-                transaction.amount > 0 ? 'text-green-600' : 'text-red-600'
-              }`}
+              className={`font-medium ${transaction.amount > 0 ? 'text-green-600' : 'text-red-600'
+                }`}
             >
               {transaction.amount > 0 ? '+' : ''}
               {transaction.amount.toLocaleString()}
@@ -135,22 +134,21 @@ export function CreditDetailViewer({ transaction }: CreditDetailViewerProps) {
                   {t('columns.amount')}:
                 </span>
                 <span
-                  className={`font-medium ${
-                    transaction.amount > 0 ? 'text-green-600' : 'text-red-600'
-                  }`}
+                  className={`font-medium ${transaction.amount > 0 ? 'text-green-600' : 'text-red-600'
+                    }`}
                 >
                   {transaction.amount > 0 ? '+' : ''}
                   {transaction.amount.toLocaleString()}
                 </span>
               </div>
 
-              {transaction.remainingAmount !== null && (
+              {transaction.balance !== null && (
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">
-                    {t('columns.remainingAmount')}:
+                    {t('columns.balance')}:
                   </span>
                   <span className="font-medium">
-                    {transaction.remainingAmount.toLocaleString()}
+                    {transaction.balance.toLocaleString()}
                   </span>
                 </div>
               )}
@@ -190,13 +188,13 @@ export function CreditDetailViewer({ transaction }: CreditDetailViewerProps) {
                 </div>
               )}
 
-              {transaction.expirationDateProcessedAt && (
+              {transaction.expiredAt && (
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">
-                    {t('columns.expirationDateProcessedAt')}:
+                    {t('columns.expiredAt')}:
                   </span>
                   <span>
-                    {formatDate(transaction.expirationDateProcessedAt)}
+                    {formatDate(transaction.expiredAt)}
                   </span>
                 </div>
               )}

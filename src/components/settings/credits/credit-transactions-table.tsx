@@ -253,21 +253,21 @@ export function CreditTransactionsTable({
         size: 120,
       },
       {
-        id: 'remainingAmount',
-        accessorKey: 'remainingAmount',
+        id: 'balance',
+        accessorKey: 'balance',
         header: ({ column }) => (
           <DataTableColumnHeader
             column={column}
-            label={t('columns.remainingAmount')}
+            label={t('columns.balance')}
           />
         ),
         cell: ({ row }) => {
           const transaction = row.original;
           return (
             <div className="flex items-center gap-2">
-              {transaction.remainingAmount !== null ? (
+              {transaction.balance !== null ? (
                 <span className="font-medium">
-                  {transaction.remainingAmount.toLocaleString()}
+                  {transaction.balance.toLocaleString()}
                 </span>
               ) : (
                 <span className="text-gray-400">-</span>
@@ -276,7 +276,7 @@ export function CreditTransactionsTable({
           );
         },
         meta: {
-          label: t('columns.remainingAmount'),
+          label: t('columns.balance'),
         },
         minSize: 120,
         size: 140,
@@ -387,21 +387,21 @@ export function CreditTransactionsTable({
         size: 160,
       },
       {
-        id: 'expirationDateProcessedAt',
-        accessorKey: 'expirationDateProcessedAt',
+        id: 'expiredAt',
+        accessorKey: 'expiredAt',
         header: ({ column }) => (
           <DataTableColumnHeader
             column={column}
-            label={t('columns.expirationDateProcessedAt')}
+            label={t('columns.expiredAt')}
           />
         ),
         cell: ({ row }) => {
           const transaction = row.original;
           return (
             <div className="flex items-center gap-2">
-              {transaction.expirationDateProcessedAt ? (
+              {transaction.expiredAt ? (
                 <span className="text-sm">
-                  {formatDate(transaction.expirationDateProcessedAt)}
+                  {formatDate(transaction.expiredAt)}
                 </span>
               ) : (
                 <span className="text-gray-400">-</span>
@@ -410,7 +410,7 @@ export function CreditTransactionsTable({
           );
         },
         meta: {
-          label: t('columns.expirationDateProcessedAt'),
+          label: t('columns.expiredAt'),
         },
         minSize: 160,
         size: 180,
@@ -558,9 +558,9 @@ export function CreditTransactionsTable({
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                     </TableHead>
                   ))}
                 </TableRow>

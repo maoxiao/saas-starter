@@ -87,9 +87,9 @@ export async function saveCreditTransaction({
     userId,
     type,
     amount,
-    // remaining amount is the same as amount for earn transactions
-    // remaining amount is null for spend transactions
-    remainingAmount: amount > 0 ? amount : null,
+    // balance is the same as amount for earn transactions
+    // balance is null for spend transactions
+    balance: amount > 0 ? amount : null,
     description,
     paymentId,
     expirationDate,
@@ -228,8 +228,8 @@ export async function consumeCredits({
         // Exclude usage and expire records (these are consumption/expiration logs)
         not(eq(creditTransaction.type, CREDIT_TRANSACTION_TYPE.USAGE)),
         not(eq(creditTransaction.type, CREDIT_TRANSACTION_TYPE.EXPIRE)),
-        // Only include transactions with remaining amount > 0
-        gt(creditTransaction.remainingAmount, 0),
+        // Only include transactions with balance > 0
+        gt(creditTransaction.balance, 0),
         // Only include unexpired credits (either no expiration date or not yet expired)
         or(
           isNull(creditTransaction.expirationDate),
@@ -245,14 +245,14 @@ export async function consumeCredits({
   let remainingToDeduct = amount;
   for (const transaction of transactions) {
     if (remainingToDeduct <= 0) break;
-    const remainingAmount = transaction.remainingAmount || 0;
-    if (remainingAmount <= 0) continue;
+    const txBalance = transaction.balance || 0;
+    if (txBalance <= 0) continue;
     // credits to consume at most in this transaction
-    const deductFromThis = Math.min(remainingAmount, remainingToDeduct);
+    const deductFromThis = Math.min(txBalance, remainingToDeduct);
     await db
       .update(creditTransaction)
       .set({
-        remainingAmount: remainingAmount - deductFromThis,
+        balance: txBalance - deductFromThis,
         updatedAt: new Date(),
       })
       .where(eq(creditTransaction.id, transaction.id));
@@ -299,9 +299,9 @@ export async function processExpiredCredits(userId: string) {
         // Only include transactions with expirationDate set
         not(isNull(creditTransaction.expirationDate)),
         // Only include transactions not yet processed for expiration
-        isNull(creditTransaction.expirationDateProcessedAt),
-        // Only include transactions with remaining amount > 0
-        gt(creditTransaction.remainingAmount, 0)
+        isNull(creditTransaction.expiredAt),
+        // Only include transactions with balance > 0
+        gt(creditTransaction.balance, 0)
       )
     );
   let expiredTotal = 0;
@@ -310,16 +310,16 @@ export async function processExpiredCredits(userId: string) {
     if (
       transaction.expirationDate &&
       isAfter(now, transaction.expirationDate) &&
-      !transaction.expirationDateProcessedAt
+      !transaction.expiredAt
     ) {
-      const remain = transaction.remainingAmount || 0;
+      const remain = transaction.balance || 0;
       if (remain > 0) {
         expiredTotal += remain;
         await db
           .update(creditTransaction)
           .set({
-            remainingAmount: 0,
-            expirationDateProcessedAt: now,
+            balance: 0,
+            expiredAt: now,
             updatedAt: now,
           })
           .where(eq(creditTransaction.id, transaction.id));

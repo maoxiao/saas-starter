@@ -268,7 +268,7 @@ export async function batchAddMonthlyFreeCredits(userIds: string[]) {
       userId,
       type: CREDIT_TRANSACTION_TYPE.MONTHLY_REFRESH,
       amount: credits,
-      remainingAmount: credits,
+      balance: credits,
       description: `Free monthly credits: ${credits} for ${now.getFullYear()}-${now.getMonth() + 1}`,
       expirationDate,
       createdAt: now,
@@ -409,7 +409,7 @@ export async function batchAddLifetimeMonthlyCredits(
         userId,
         type: CREDIT_TRANSACTION_TYPE.LIFETIME_MONTHLY,
         amount: credits,
-        remainingAmount: credits,
+        balance: credits,
         description: `Lifetime monthly credits: ${credits} for ${now.getFullYear()}-${now.getMonth() + 1}`,
         expirationDate,
         createdAt: now,
@@ -550,7 +550,7 @@ export async function batchAddYearlyUsersMonthlyCredits(
         userId,
         type: CREDIT_TRANSACTION_TYPE.SUBSCRIPTION_RENEWAL,
         amount: credits,
-        remainingAmount: credits,
+        balance: credits,
         description: `Yearly subscription monthly credits: ${credits} for ${now.getFullYear()}-${now.getMonth() + 1}`,
         expirationDate,
         createdAt: now,
@@ -631,9 +631,9 @@ export async function batchProcessExpiredCredits() {
         // Only include transactions with expirationDate set
         not(isNull(creditTransaction.expirationDate)),
         // Only include transactions not yet processed for expiration
-        isNull(creditTransaction.expirationDateProcessedAt),
-        // Only include transactions with remaining amount > 0
-        gt(creditTransaction.remainingAmount, 0),
+        isNull(creditTransaction.expiredAt),
+        // Only include transactions with balance > 0
+        gt(creditTransaction.balance, 0),
         // Only include expired transactions
         lt(creditTransaction.expirationDate, now)
       )
@@ -714,9 +714,9 @@ export async function batchProcessExpiredCreditsForUsers(userIds: string[]) {
             // Only include transactions with expirationDate set
             not(isNull(creditTransaction.expirationDate)),
             // Only include transactions not yet processed for expiration
-            isNull(creditTransaction.expirationDateProcessedAt),
-            // Only include transactions with remaining amount > 0
-            gt(creditTransaction.remainingAmount, 0),
+            isNull(creditTransaction.expiredAt),
+            // Only include transactions with balance > 0
+            gt(creditTransaction.balance, 0),
             // Only include expired transactions
             lt(creditTransaction.expirationDate, now)
           )
@@ -726,14 +726,14 @@ export async function batchProcessExpiredCreditsForUsers(userIds: string[]) {
 
       // Process expired credit transactions
       for (const transaction of transactions) {
-        const remain = transaction.remainingAmount || 0;
+        const remain = transaction.balance || 0;
         if (remain > 0) {
           expiredTotal += remain;
           await tx
             .update(creditTransaction)
             .set({
-              remainingAmount: 0,
-              expirationDateProcessedAt: now,
+              balance: 0,
+              expiredAt: now,
               updatedAt: now,
             })
             .where(eq(creditTransaction.id, transaction.id));
@@ -764,7 +764,7 @@ export async function batchProcessExpiredCreditsForUsers(userIds: string[]) {
           userId,
           type: CREDIT_TRANSACTION_TYPE.EXPIRE,
           amount: -expiredTotal,
-          remainingAmount: null,
+          balance: null,
           description: `Expire credits: ${expiredTotal}`,
           createdAt: now,
           updatedAt: now,

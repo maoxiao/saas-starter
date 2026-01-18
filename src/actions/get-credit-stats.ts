@@ -24,15 +24,15 @@ export const getCreditStatsAction = userActionClient.action(async ({ ctx }) => {
     // Get total credits expiring in the next 30 days
     const expiringCreditsResult = await db
       .select({
-        totalAmount: sum(creditTransaction.remainingAmount),
+        totalAmount: sum(creditTransaction.balance),
       })
       .from(creditTransaction)
       .where(
         and(
           eq(creditTransaction.userId, userId),
           isNotNull(creditTransaction.expirationDate),
-          isNotNull(creditTransaction.remainingAmount),
-          gt(creditTransaction.remainingAmount, 0),
+          isNotNull(creditTransaction.balance),
+          gt(creditTransaction.balance, 0),
           lte(creditTransaction.expirationDate, expirationDaysFromNow),
           gte(creditTransaction.expirationDate, now)
         )

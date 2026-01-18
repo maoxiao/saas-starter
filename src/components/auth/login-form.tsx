@@ -147,6 +147,7 @@ export const LoginForm = ({
           // console.log("login, success:", ctx.data);
           // setSuccess("Login successful");
           // router.push(callbackUrl || "/dashboard");
+          // Attribution sync is now handled centrally by AttributionTracker
         },
         onError: (ctx) => {
           // console.error('login, error:', ctx.error);

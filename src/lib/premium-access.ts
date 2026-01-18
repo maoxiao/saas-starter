@@ -1,7 +1,7 @@
 import { getDb } from '@/db';
 import { payment } from '@/db/schema';
 import { findPlanByPriceId, getAllPricePlans } from '@/lib/price-plan';
-import { PaymentScenes, PaymentTypes } from '@/payment/types';
+import { PurchaseTypes, PaymentTypes } from '@/payment/types';
 import { and, desc, eq, or } from 'drizzle-orm';
 
 /**
@@ -28,13 +28,13 @@ export async function checkPremiumAccess(userId: string): Promise<boolean> {
             // Check for completed lifetime payments
             and(
               eq(payment.type, PaymentTypes.ONE_TIME),
-              eq(payment.scene, PaymentScenes.LIFETIME),
+              eq(payment.purchaseType, PurchaseTypes.LIFETIME),
               eq(payment.status, 'completed')
             ),
             // Check for active or trialing subscriptions
             and(
               eq(payment.type, PaymentTypes.SUBSCRIPTION),
-              // eq(payment.scene, PaymentScenes.SUBSCRIPTION),
+              // eq(payment.purchaseType, PurchaseTypes.SUBSCRIPTION),
               or(eq(payment.status, 'active'), eq(payment.status, 'trialing'))
             )
           )

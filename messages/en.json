@@ -598,10 +598,10 @@
             "type": "Type",
             "description": "Description",
             "amount": "Amount",
-            "remainingAmount": "Remaining Amount",
+            "balance": "Balance",
             "paymentId": "Payment ID",
             "expirationDate": "Expiration Date",
-            "expirationDateProcessedAt": "Expiration Processed At",
+            "expiredAt": "Expired At",
             "createdAt": "Created At",
             "updatedAt": "Updated At"
           },

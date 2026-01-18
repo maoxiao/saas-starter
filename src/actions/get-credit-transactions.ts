@@ -36,12 +36,12 @@ const getCreditTransactionsSchema = z.object({
 const sortFieldMap = {
   type: creditTransaction.type,
   amount: creditTransaction.amount,
-  remainingAmount: creditTransaction.remainingAmount,
+  balance: creditTransaction.balance,
   description: creditTransaction.description,
   createdAt: creditTransaction.createdAt,
   updatedAt: creditTransaction.updatedAt,
   expirationDate: creditTransaction.expirationDate,
-  expirationDateProcessedAt: creditTransaction.expirationDateProcessedAt,
+  expiredAt: creditTransaction.expiredAt,
   paymentId: creditTransaction.paymentId,
 } as const;
 
@@ -71,7 +71,7 @@ export const getCreditTransactionsAction = userActionClient
         if (!Number.isNaN(numericSearch)) {
           searchConditions.push(
             eq(creditTransaction.amount, numericSearch),
-            eq(creditTransaction.remainingAmount, numericSearch)
+            eq(creditTransaction.balance, numericSearch)
           );
         }
 
@@ -113,11 +113,11 @@ export const getCreditTransactionsAction = userActionClient
             type: creditTransaction.type,
             description: creditTransaction.description,
             amount: creditTransaction.amount,
-            remainingAmount: creditTransaction.remainingAmount,
+            balance: creditTransaction.balance,
             paymentId: creditTransaction.paymentId,
             expirationDate: creditTransaction.expirationDate,
-            expirationDateProcessedAt:
-              creditTransaction.expirationDateProcessedAt,
+            expiredAt:
+              creditTransaction.expiredAt,
             createdAt: creditTransaction.createdAt,
             updatedAt: creditTransaction.updatedAt,
           })

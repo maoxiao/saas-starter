@@ -20,6 +20,40 @@ export const user = pgTable("user", {
 	userRoleIdx: index("user_role_idx").on(table.role),
 }));
 
+// User attribution tracking for first-touch and last-touch data
+export const userAttribution = pgTable("user_attribution", {
+	id: text("id").primaryKey(),
+	visitorId: text("visitor_id").notNull().unique(), // Anonymous visitor ID from localStorage
+	userId: text("user_id").references(() => user.id, { onDelete: 'cascade' }),
+
+	// First Touch (set once, never updated)
+	firstTouchSource: text("first_touch_source"),
+	firstTouchMedium: text("first_touch_medium"),
+	firstTouchCampaign: text("first_touch_campaign"),
+	landingPage: text("landing_page"),
+	referrer: text("referrer"),
+	firstSeenAt: timestamp("first_seen_at").notNull().defaultNow(),
+
+	// Last Touch (updated on each visit with UTM params)
+	lastTouchSource: text("last_touch_source"),
+	lastTouchMedium: text("last_touch_medium"),
+	lastTouchCampaign: text("last_touch_campaign"),
+	lastSeenAt: timestamp("last_seen_at").notNull().defaultNow(),
+
+	// Registration Session Attribution (set once when user registers)
+	regPage: text("reg_page"), // Landing page of registration session
+	regRef: text("reg_ref"), // Referrer of registration session
+	regSource: text("reg_source"), // UTM source of registration session
+	regMedium: text("reg_medium"), // UTM medium of registration session
+	regCampaign: text("reg_campaign"), // UTM campaign of registration session
+
+	createdAt: timestamp("created_at").notNull().defaultNow(),
+	updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => ({
+	userAttributionVisitorIdIdx: index("user_attribution_visitor_id_idx").on(table.visitorId),
+	userAttributionUserIdIdx: index("user_attribution_user_id_idx").on(table.userId),
+}));
+
 export const session = pgTable("session", {
 	id: text("id").primaryKey(),
 	expiresAt: timestamp('expires_at').notNull(),
@@ -68,7 +102,7 @@ export const payment = pgTable("payment", {
 	id: text("id").primaryKey(),
 	priceId: text('price_id').notNull(),
 	type: text('type').notNull(),
-	scene: text('scene'), // payment scene: 'lifetime', 'credit', 'subscription'
+	purchaseType: text('purchase_type'), // purchase type: 'lifetime', 'credit', 'subscription'
 	interval: text('interval'),
 	userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
 	customerId: text('customer_id').notNull(),
@@ -82,11 +116,20 @@ export const payment = pgTable("payment", {
 	cancelAtPeriodEnd: boolean('cancel_at_period_end'),
 	trialStart: timestamp('trial_start'),
 	trialEnd: timestamp('trial_end'),
+	// Session attribution at conversion time (captures the session that led to payment)
+	sessionLandingPage: text('session_landing_page'), // First page user visited in this checkout session
+	sessionReferrer: text('session_referrer'), // External referrer for this checkout session
+	sessionSource: text('session_source'), // UTM source for this checkout session
+	sessionMedium: text('session_medium'), // UTM medium for this checkout session
+	sessionCampaign: text('session_campaign'), // UTM campaign for this checkout session
+	// Amount
+	amount: integer('amount'), // in cents
+	currency: text('currency'),
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 	updatedAt: timestamp('updated_at').notNull().defaultNow(),
 }, (table) => ({
 	paymentTypeIdx: index("payment_type_idx").on(table.type),
-	paymentSceneIdx: index("payment_scene_idx").on(table.scene),
+	paymentPurchaseTypeIdx: index("payment_purchase_type_idx").on(table.purchaseType),
 	paymentPriceIdIdx: index("payment_price_id_idx").on(table.priceId),
 	paymentUserIdIdx: index("payment_user_id_idx").on(table.userId),
 	paymentCustomerIdIdx: index("payment_customer_id_idx").on(table.customerId),
@@ -114,10 +157,10 @@ export const creditTransaction = pgTable("credit_transaction", {
 	type: text("type").notNull(),
 	description: text("description"),
 	amount: integer("amount").notNull(),
-	remainingAmount: integer("remaining_amount"),
+	balance: integer("balance"), // remaining credit amount
 	paymentId: text("payment_id"), // field name is paymentId, but actually it's invoiceId
 	expirationDate: timestamp("expiration_date"),
-	expirationDateProcessedAt: timestamp("expiration_date_processed_at"),
+	expiredAt: timestamp("expired_at"), // timestamp when expiration was processed
 	createdAt: timestamp("created_at").notNull().defaultNow(),
 	updatedAt: timestamp("updated_at").notNull().defaultNow(),
 }, (table) => ({

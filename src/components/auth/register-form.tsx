@@ -149,6 +149,12 @@ export const RegisterForm = ({
           // console.log("register, success:", ctx.data);
           setSuccess(t('checkEmail'));
 
+          // Capture registration session NOW (before email verification)
+          // This ensures we record the true registration session, not the verification session
+          import('@/components/tracking/attribution-tracker').then(
+            ({ captureRegistrationSession }) => captureRegistrationSession()
+          );
+
           // add affonso affiliate
           // https://affonso.io/app/affiliate-program/connect
           if (websiteConfig.features.enableAffonsoAffiliate) {

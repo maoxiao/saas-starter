@@ -57,6 +57,13 @@
       "when": 1766671808158,
       "tag": "0007_empty_captain_universe",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1768715143812,
+      "tag": "0008_add_user_attribution_payment_attribution",
+      "breakpoints": true
     }
   ]
 }

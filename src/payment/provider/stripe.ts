@@ -24,13 +24,13 @@ import {
   type CreateCreditCheckoutParams,
   type CreatePortalParams,
   type PaymentProvider,
-  PaymentScenes,
+  PurchaseTypes,
   type PaymentStatus,
   PaymentTypes,
   type PlanInterval,
   PlanIntervals,
   type PortalResult,
-} from '../types';
+} from '@/payment/types';
 
 /**
  * Stripe payment provider implementation
@@ -215,11 +215,20 @@ export class StripeProvider implements PaymentProvider {
       );
 
       // Add planId and priceId to metadata, so we can get it in the webhook event
-      const customMetadata = {
+      // Also truncate session attribution URLs to fit Stripe's 500 char limit
+      const customMetadata: Record<string, string> = {
         ...metadata,
         planId,
         priceId,
       };
+
+      // Truncate session attribution URLs to prevent Stripe API errors
+      if (customMetadata.sessionLandingPage) {
+        customMetadata.sessionLandingPage = this.smartTruncateUrl(customMetadata.sessionLandingPage) || '';
+      }
+      if (customMetadata.sessionReferrer) {
+        customMetadata.sessionReferrer = this.smartTruncateUrl(customMetadata.sessionReferrer) || '';
+      }
 
       // Set up the line items
       const lineItems = [
@@ -329,11 +338,20 @@ export class StripeProvider implements PaymentProvider {
       );
 
       // Add planId and priceId to metadata, so we can get it in the webhook event
-      const customMetadata = {
+      // Also truncate session attribution URLs to fit Stripe's 500 char limit
+      const customMetadata: Record<string, string> = {
         ...metadata,
         packageId,
         priceId,
       };
+
+      // Truncate session attribution URLs to prevent Stripe API errors
+      if (customMetadata.sessionLandingPage) {
+        customMetadata.sessionLandingPage = this.smartTruncateUrl(customMetadata.sessionLandingPage) || '';
+      }
+      if (customMetadata.sessionReferrer) {
+        customMetadata.sessionReferrer = this.smartTruncateUrl(customMetadata.sessionReferrer) || '';
+      }
 
       // Set up the line items
       const lineItems = [
@@ -402,8 +420,8 @@ export class StripeProvider implements PaymentProvider {
         return_url: returnUrl ?? '',
         locale: locale
           ? (this.mapLocaleToStripeLocale(
-              locale
-            ) as Stripe.BillingPortal.SessionCreateParams.Locale)
+            locale
+          ) as Stripe.BillingPortal.SessionCreateParams.Locale)
           : undefined,
       });
 
@@ -689,6 +707,11 @@ export class StripeProvider implements PaymentProvider {
 
       // Update payment record with all subscription details
       const db = await getDb();
+      
+      // Extract amount and currency from subscription price
+      const amount = subscription.items.data[0]?.price.unit_amount ?? null;
+      const currency = subscription.items.data[0]?.price.currency ?? null;
+      
       await db
         .update(payment)
         .set({
@@ -703,6 +726,8 @@ export class StripeProvider implements PaymentProvider {
           cancelAtPeriodEnd: subscription.cancel_at_period_end,
           trialStart,
           trialEnd,
+          amount,
+          currency,
           updatedAt: currentDate,
         })
         .where(eq(payment.id, paymentRecord.id));
@@ -910,6 +935,10 @@ export class StripeProvider implements PaymentProvider {
       ? new Date(stripeSubscription.trial_end * 1000)
       : undefined;
 
+    // Extract amount and currency from subscription price
+    const amount = stripeSubscription.items.data[0]?.price.unit_amount ?? null;
+    const currency = stripeSubscription.items.data[0]?.price.currency ?? null;
+
     // update fields
     const updateFields: any = {
       priceId: priceId,
@@ -922,6 +951,8 @@ export class StripeProvider implements PaymentProvider {
       cancelAtPeriodEnd: stripeSubscription.cancel_at_period_end,
       trialStart: trialStart,
       trialEnd: trialEnd,
+      amount,
+      currency,
       updatedAt: new Date(),
     };
 
@@ -1046,12 +1077,19 @@ export class StripeProvider implements PaymentProvider {
     // Create subscription payment record with proper status and paid=false
     const db = await getDb();
 
+    // Get session attribution from checkout session metadata
+    const sessionAttribution = this.getSessionAttribution(session.metadata || {});
+
+    // Extract amount and currency from subscription price
+    const amount = subscription.items.data[0]?.price.unit_amount ?? null;
+    const currency = subscription.items.data[0]?.price.currency ?? null;
+
     try {
       await db.insert(payment).values({
         id: randomUUID(),
         priceId,
         type: PaymentTypes.SUBSCRIPTION,
-        scene: PaymentScenes.SUBSCRIPTION,
+        purchaseType: PurchaseTypes.SUBSCRIPTION,
         userId,
         customerId,
         subscriptionId,
@@ -1065,6 +1103,11 @@ export class StripeProvider implements PaymentProvider {
         cancelAtPeriodEnd: subscription.cancel_at_period_end,
         trialStart,
         trialEnd,
+        // Amount and currency
+        amount,
+        currency,
+        // Session attribution at conversion time
+        ...sessionAttribution,
         createdAt: currentDate,
         updatedAt: currentDate,
       });
@@ -1107,29 +1150,40 @@ export class StripeProvider implements PaymentProvider {
     // No matter user uses coupon code or not, even amount=0, invoice id is available
     const invoiceId: string | null = session.invoice as string | null;
     console.log('createOneTimePaymentRecord, invoiceId:', invoiceId);
-
-    // Determine payment scene based on metadata
+    // Determine purchase type based on metadata
     const metadata = session.metadata || {};
     const isCreditPurchase = metadata.type === 'credit_purchase';
-    const scene = isCreditPurchase
-      ? PaymentScenes.CREDIT
-      : PaymentScenes.LIFETIME;
+    const purchaseType = isCreditPurchase
+      ? PurchaseTypes.CREDIT
+      : PurchaseTypes.LIFETIME;
 
     // Create one-time payment record with proper status and paid=false
     const db = await getDb();
+
+    // Get session attribution from checkout session metadata
+    const sessionAttribution = this.getSessionAttribution(metadata);
+
+    // Extract amount and currency from checkout session
+    const amount = session.amount_total ?? null;
+    const currency = session.currency ?? null;
 
     try {
       await db.insert(payment).values({
         id: randomUUID(),
         priceId,
         type: PaymentTypes.ONE_TIME,
-        scene,
+        purchaseType,
         userId,
         customerId,
         sessionId: session.id,
         invoiceId, // may be null initially
         paid: false, // will be set to true when invoice.paid event occurs
         status: 'completed', // one-time payments are completed once checkout is done
+        // Amount and currency
+        amount,
+        currency,
+        // Session attribution at conversion time
+        ...sessionAttribution,
         createdAt: currentDate,
         updatedAt: currentDate,
       });
@@ -1349,5 +1403,63 @@ export class StripeProvider implements PaymentProvider {
       s?.items?.data?.[0]?.current_period_end ??
       undefined;
     return typeof endUnix === 'number' ? new Date(endUnix * 1000) : undefined;
+  }
+
+  /**
+   * Smart truncate URL to fit within Stripe metadata limit (500 chars)
+   * Prioritizes: hostname > pathname > query params (truncated)
+   * @param url URL string to truncate
+   * @param maxLength Maximum length (default 500 for Stripe metadata)
+   * @returns Truncated URL string
+   */
+  private smartTruncateUrl(url: string | undefined, maxLength = 500): string | null {
+    if (!url) return null;
+    if (url.length <= maxLength) return url;
+
+    try {
+      const parsed = new URL(url);
+      const baseUrl = `${parsed.origin}${parsed.pathname}`;
+
+      // If base URL alone exceeds limit, just truncate it
+      if (baseUrl.length >= maxLength) {
+        return baseUrl.substring(0, maxLength - 3) + '...';
+      }
+
+      // Calculate remaining space for query params
+      const remainingSpace = maxLength - baseUrl.length - 4; // -4 for "?..."
+
+      if (remainingSpace > 0 && parsed.search) {
+        // Keep as much of query string as possible
+        const truncatedQuery = parsed.search.substring(0, remainingSpace);
+        return `${baseUrl}${truncatedQuery}...`;
+      }
+
+      return baseUrl;
+    } catch {
+      // If URL parsing fails, do simple truncation
+      return url.substring(0, maxLength - 3) + '...';
+    }
+  }
+
+  /**
+   * Get session attribution snapshot from checkout session metadata
+   * This captures the session-level attribution data passed from the frontend
+   * @param metadata Stripe checkout session metadata
+   * @returns Session attribution data to be stored with the payment record
+   */
+  private getSessionAttribution(metadata: Record<string, string>): {
+    sessionLandingPage: string | null;
+    sessionReferrer: string | null;
+    sessionSource: string | null;
+    sessionMedium: string | null;
+    sessionCampaign: string | null;
+  } {
+    return {
+      sessionLandingPage: this.smartTruncateUrl(metadata.sessionLandingPage),
+      sessionReferrer: this.smartTruncateUrl(metadata.sessionReferrer),
+      sessionSource: metadata.sessionSource || null,
+      sessionMedium: metadata.sessionMedium || null,
+      sessionCampaign: metadata.sessionCampaign || null,
+    };
   }
 }

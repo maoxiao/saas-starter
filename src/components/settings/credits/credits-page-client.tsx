@@ -36,11 +36,11 @@ export default function CreditsPageClient() {
     () => [
       'type',
       'amount',
-      'remainingAmount',
+      'balance',
       'description',
       'paymentId',
       'expirationDate',
-      'expirationDateProcessedAt',
+      'expiredAt',
       'createdAt',
       'updatedAt',
     ],
