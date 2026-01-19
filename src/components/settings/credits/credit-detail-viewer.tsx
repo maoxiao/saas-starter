@@ -10,7 +10,7 @@ import {
   DrawerTrigger,
 } from '@/components/ui/drawer';
 import { Separator } from '@/components/ui/separator';
-import { LOG_ACTION } from '@/credits/grant';
+import { LOG_ACTION } from '@/credits/grant/types';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { formatDate } from '@/lib/formatter';
 import {

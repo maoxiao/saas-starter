@@ -20,7 +20,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { LOG_ACTION } from '@/credits/grant';
+import { LOG_ACTION } from '@/credits/grant/types';
 import type { CreditTransaction } from '@/credits/types';
 import { formatDate } from '@/lib/formatter';
 import {
