@@ -1,9 +1,9 @@
 /**
  * Attribution utilities for tracking user acquisition sources
- * 
+ *
  * This module provides client-side utilities to retrieve attribution data
  * stored in localStorage by the AttributionTracker component.
- * 
+ *
  * Data is only written to the database on key conversion events:
  * - User signup
  * - User login (to link attribution to userId)
@@ -77,8 +77,11 @@ export async function syncAttributionToServer(): Promise<boolean> {
   }
 
   // Get session entry data from attribution-tracker
-  const { getSessionAttribution, getRegistrationSession, clearRegistrationSession } = 
-    await import('@/components/tracking/attribution-tracker');
+  const {
+    getSessionAttribution,
+    getRegistrationSession,
+    clearRegistrationSession,
+  } = await import('@/components/tracking/attribution-tracker');
   const sessionAttribution = getSessionAttribution();
 
   // Get registration session (captured at registration time, if any)

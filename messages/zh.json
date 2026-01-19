@@ -606,13 +606,12 @@
             "updatedAt": "更新时间"
           },
           "types": {
-            "MONTHLY_REFRESH": "每月赠送",
-            "REGISTER_GIFT": "注册赠送",
-            "PURCHASE": "购买积分",
-            "USAGE": "使用积分",
-            "EXPIRE": "过期积分",
-            "SUBSCRIPTION_RENEWAL": "订阅月度积分",
-            "LIFETIME_MONTHLY": "终身月度积分"
+            "granted": "积分发放",
+            "consumed": "积分消耗",
+            "expired": "积分过期",
+            "refunded": "积分退款",
+            "held": "积分冻结",
+            "released": "积分释放"
           },
           "detailViewer": {
             "title": "积分交易详情",

@@ -31,6 +31,7 @@ export function ConsumeCreditsCard() {
     try {
       await consumeCreditsMutation.mutateAsync({
         amount: CONSUME_CREDITS,
+        eventId: `test_consume_${crypto.randomUUID()}`,
         description: `Test credit consumption (${CONSUME_CREDITS} credits)`,
       });
       toast.success(`${CONSUME_CREDITS} credits consumed successfully!`);

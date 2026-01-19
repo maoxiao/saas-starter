@@ -1,6 +1,6 @@
 'use server';
 
-import { consumeCredits } from '@/credits/credits';
+import { deductCredits } from '@/credits/grant';
 import type { User } from '@/lib/auth-types';
 import { userActionClient } from '@/lib/safe-action';
 import { z } from 'zod';
@@ -8,23 +8,29 @@ import { z } from 'zod';
 // consume credits schema
 const consumeSchema = z.object({
   amount: z.number().min(1),
+  eventId: z.string().min(1, 'eventId is required for idempotency'),
   description: z.string().optional(),
 });
 
 /**
- * Consume credits
+ * Consume credits (using new Grant system)
+ *
+ * IMPORTANT: Caller must provide a stable eventId for idempotency.
+ * Use the same eventId for retries to prevent double-charging.
+ * Example: `task_${taskId}` or `generation_${generationId}`
  */
 export const consumeCreditsAction = userActionClient
   .schema(consumeSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { amount, description } = parsedInput;
+    const { amount, eventId, description } = parsedInput;
     const currentUser = (ctx as { user: User }).user;
 
     try {
-      await consumeCredits({
+      await deductCredits({
         userId: currentUser.id,
         amount,
-        description: description || `Consume credits: ${amount}`,
+        eventId,
+        reason: description || `Consume credits: ${amount}`,
       });
       return { success: true };
     } catch (error) {

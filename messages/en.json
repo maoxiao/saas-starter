@@ -606,13 +606,12 @@
             "updatedAt": "Updated At"
           },
           "types": {
-            "MONTHLY_REFRESH": "Monthly Refresh",
-            "REGISTER_GIFT": "Register Gift",
-            "PURCHASE": "Purchased Credits",
-            "USAGE": "Consumed Credits",
-            "EXPIRE": "Expired Credits",
-            "SUBSCRIPTION_RENEWAL": "Subscription Renewal",
-            "LIFETIME_MONTHLY": "Lifetime Monthly"
+            "granted": "Credits Granted",
+            "consumed": "Credits Consumed",
+            "expired": "Credits Expired",
+            "refunded": "Credits Refunded",
+            "held": "Credits Held",
+            "released": "Credits Released"
           },
           "detailViewer": {
             "title": "Credit Transaction Detail",

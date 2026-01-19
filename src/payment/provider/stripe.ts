@@ -1,12 +1,8 @@
 import { randomUUID } from 'crypto';
 import { websiteConfig } from '@/config/website';
-import {
-  addCredits,
-  addLifetimeMonthlyCredits,
-  addSubscriptionCredits,
-} from '@/credits/credits';
+// New Grant System
+import { GRANT_PRIORITY, GRANT_TYPE, createGrant } from '@/credits/grant';
 import { getCreditPackageById } from '@/credits/server';
-import { CREDIT_TRANSACTION_TYPE } from '@/credits/types';
 import { getDb } from '@/db';
 import { payment, user } from '@/db/schema';
 import type { Payment } from '@/db/types';
@@ -16,21 +12,21 @@ import {
 } from '@/lib/constants';
 import { findPlanByPlanId, findPriceInPlan } from '@/lib/price-plan';
 import { sendNotification } from '@/notification/notification';
-import { desc, eq } from 'drizzle-orm';
-import { Stripe } from 'stripe';
 import {
   type CheckoutResult,
   type CreateCheckoutParams,
   type CreateCreditCheckoutParams,
   type CreatePortalParams,
   type PaymentProvider,
-  PurchaseTypes,
   type PaymentStatus,
   PaymentTypes,
   type PlanInterval,
   PlanIntervals,
   type PortalResult,
+  PurchaseTypes,
 } from '@/payment/types';
+import { desc, eq } from 'drizzle-orm';
+import { Stripe } from 'stripe';
 
 /**
  * Stripe payment provider implementation
@@ -224,10 +220,12 @@ export class StripeProvider implements PaymentProvider {
 
       // Truncate session attribution URLs to prevent Stripe API errors
       if (customMetadata.sessionLandingPage) {
-        customMetadata.sessionLandingPage = this.smartTruncateUrl(customMetadata.sessionLandingPage) || '';
+        customMetadata.sessionLandingPage =
+          this.smartTruncateUrl(customMetadata.sessionLandingPage) || '';
       }
       if (customMetadata.sessionReferrer) {
-        customMetadata.sessionReferrer = this.smartTruncateUrl(customMetadata.sessionReferrer) || '';
+        customMetadata.sessionReferrer =
+          this.smartTruncateUrl(customMetadata.sessionReferrer) || '';
       }
 
       // Set up the line items
@@ -347,10 +345,12 @@ export class StripeProvider implements PaymentProvider {
 
       // Truncate session attribution URLs to prevent Stripe API errors
       if (customMetadata.sessionLandingPage) {
-        customMetadata.sessionLandingPage = this.smartTruncateUrl(customMetadata.sessionLandingPage) || '';
+        customMetadata.sessionLandingPage =
+          this.smartTruncateUrl(customMetadata.sessionLandingPage) || '';
       }
       if (customMetadata.sessionReferrer) {
-        customMetadata.sessionReferrer = this.smartTruncateUrl(customMetadata.sessionReferrer) || '';
+        customMetadata.sessionReferrer =
+          this.smartTruncateUrl(customMetadata.sessionReferrer) || '';
       }
 
       // Set up the line items
@@ -420,8 +420,8 @@ export class StripeProvider implements PaymentProvider {
         return_url: returnUrl ?? '',
         locale: locale
           ? (this.mapLocaleToStripeLocale(
-            locale
-          ) as Stripe.BillingPortal.SessionCreateParams.Locale)
+              locale
+            ) as Stripe.BillingPortal.SessionCreateParams.Locale)
           : undefined,
       });
 
@@ -707,11 +707,11 @@ export class StripeProvider implements PaymentProvider {
 
       // Update payment record with all subscription details
       const db = await getDb();
-      
+
       // Extract amount and currency from subscription price
       const amount = subscription.items.data[0]?.price.unit_amount ?? null;
       const currency = subscription.items.data[0]?.price.currency ?? null;
-      
+
       await db
         .update(payment)
         .set({
@@ -733,7 +733,12 @@ export class StripeProvider implements PaymentProvider {
         .where(eq(payment.id, paymentRecord.id));
 
       // Process subscription benefits
-      await this.processSubscriptionPurchase(userId, priceId);
+      await this.processSubscriptionPurchase(
+        userId,
+        priceId,
+        periodEnd,
+        invoice.id
+      );
     } catch (error) {
       console.error('<< Update subscription payment error:', error);
       throw error;
@@ -746,16 +751,33 @@ export class StripeProvider implements PaymentProvider {
    * Process subscription purchase
    * @param userId User ID
    * @param priceId Price ID
+   * @param periodEnd Period end date (for grant expiration)
+   * @param sourceRef Invoice ID or subscription ID for audit trail
    */
   private async processSubscriptionPurchase(
     userId: string,
-    priceId: string
+    priceId: string,
+    periodEnd?: Date | null,
+    sourceRef?: string
   ): Promise<void> {
     console.log('>> Process subscription purchase');
 
     if (websiteConfig.credits?.enableCredits) {
-      await addSubscriptionCredits(userId, priceId);
-      console.log('Added subscription credits for user:', userId);
+      // Create grant in new system
+      const pricePlan = (await import('@/lib/price-plan')).findPlanByPriceId(
+        priceId
+      );
+      if (pricePlan?.credits?.enable && pricePlan.credits.amount > 0) {
+        await createGrant({
+          userId,
+          type: GRANT_TYPE.SUBSCRIPTION,
+          amount: pricePlan.credits.amount,
+          priority: GRANT_PRIORITY.SUBSCRIPTION,
+          expiresAt: periodEnd || null,
+          sourceRef: sourceRef || undefined,
+        });
+        console.log('Created subscription grant for user:', userId);
+      }
     }
 
     console.log('<< Process subscription purchase success');
@@ -842,16 +864,18 @@ export class StripeProvider implements PaymentProvider {
       return;
     }
 
-    // Add credits to user account
-    const amount = invoice.amount_paid ? invoice.amount_paid / 100 : 0;
-    await addCredits({
+    // Create topup grant in new system
+    await createGrant({
       userId: paymentRecord.userId,
+      type: GRANT_TYPE.TOPUP,
       amount: Number.parseInt(credits),
-      type: CREDIT_TRANSACTION_TYPE.PURCHASE_PACKAGE,
-      description: `+${credits} credits for package ${packageId} ($${amount.toLocaleString()})`,
-      paymentId: invoice.id,
-      expireDays: creditPackage.expireDays,
+      priority: GRANT_PRIORITY.TOPUP,
+      expiresAt: creditPackage.expireDays
+        ? new Date(Date.now() + creditPackage.expireDays * 24 * 60 * 60 * 1000)
+        : null,
+      sourceRef: invoice.id,
     });
+    console.log('Created topup grant for user:', paymentRecord.userId);
 
     console.log('<< Process credit purchase success');
   }
@@ -867,13 +891,22 @@ export class StripeProvider implements PaymentProvider {
   ): Promise<void> {
     console.log('>> Process lifetime plan purchase');
 
-    // Add lifetime credits if enabled
+    // Add lifetime credits using new grant system
     if (websiteConfig.credits?.enableCredits) {
-      await addLifetimeMonthlyCredits(
-        paymentRecord.userId,
+      const pricePlan = (await import('@/lib/price-plan')).findPlanByPriceId(
         paymentRecord.priceId
       );
-      console.log('Added lifetime credits for user:', paymentRecord.userId);
+      if (pricePlan?.credits?.enable && pricePlan.credits.amount > 0) {
+        await createGrant({
+          userId: paymentRecord.userId,
+          type: GRANT_TYPE.LIFETIME, // Use LIFETIME instead of SUBSCRIPTION
+          amount: pricePlan.credits.amount,
+          priority: GRANT_PRIORITY.LIFETIME,
+          expiresAt: null, // Lifetime never expires
+          sourceRef: invoice.id,
+        });
+        console.log('Created lifetime grant for user:', paymentRecord.userId);
+      }
     }
 
     // Send notification
@@ -1078,7 +1111,9 @@ export class StripeProvider implements PaymentProvider {
     const db = await getDb();
 
     // Get session attribution from checkout session metadata
-    const sessionAttribution = this.getSessionAttribution(session.metadata || {});
+    const sessionAttribution = this.getSessionAttribution(
+      session.metadata || {}
+    );
 
     // Extract amount and currency from subscription price
     const amount = subscription.items.data[0]?.price.unit_amount ?? null;
@@ -1412,7 +1447,10 @@ export class StripeProvider implements PaymentProvider {
    * @param maxLength Maximum length (default 500 for Stripe metadata)
    * @returns Truncated URL string
    */
-  private smartTruncateUrl(url: string | undefined, maxLength = 500): string | null {
+  private smartTruncateUrl(
+    url: string | undefined,
+    maxLength = 500
+  ): string | null {
     if (!url) return null;
     if (url.length <= maxLength) return url;
 

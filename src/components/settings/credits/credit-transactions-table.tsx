@@ -20,10 +20,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import {
-  CREDIT_TRANSACTION_TYPE,
-  type CreditTransaction,
-} from '@/credits/types';
+import { LOG_ACTION } from '@/credits/grant';
+import type { CreditTransaction } from '@/credits/types';
 import { formatDate } from '@/lib/formatter';
 import {
   type ColumnDef,
@@ -39,10 +37,9 @@ import {
   BanknoteIcon,
   ClockIcon,
   CoinsIcon,
-  GemIcon,
   GiftIcon,
   HandCoinsIcon,
-  ShoppingCartIcon,
+  RotateCcwIcon,
   XIcon,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -135,45 +132,41 @@ export function CreditTransactionsTable({
   const t = useTranslations('Dashboard.settings.credits.transactions');
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
 
-  // Get transaction type icon
+  // Get transaction type icon (using new LOG_ACTION values)
   const getTransactionTypeIcon = (type: string) => {
     switch (type) {
-      case CREDIT_TRANSACTION_TYPE.MONTHLY_REFRESH:
-        return <HandCoinsIcon className="h-5 w-5" />;
-      case CREDIT_TRANSACTION_TYPE.REGISTER_GIFT:
-        return <GiftIcon className="h-5 w-5" />;
-      case CREDIT_TRANSACTION_TYPE.PURCHASE_PACKAGE:
-        return <ShoppingCartIcon className="h-5 w-5" />;
-      case CREDIT_TRANSACTION_TYPE.USAGE:
-        return <CoinsIcon className="h-5 w-5" />;
-      case CREDIT_TRANSACTION_TYPE.EXPIRE:
-        return <ClockIcon className="h-5 w-5" />;
-      case CREDIT_TRANSACTION_TYPE.SUBSCRIPTION_RENEWAL:
+      case LOG_ACTION.GRANTED:
         return <BanknoteIcon className="h-5 w-5" />;
-      case CREDIT_TRANSACTION_TYPE.LIFETIME_MONTHLY:
-        return <GemIcon className="h-5 w-5" />;
+      case LOG_ACTION.CONSUMED:
+        return <CoinsIcon className="h-5 w-5" />;
+      case LOG_ACTION.EXPIRED:
+        return <ClockIcon className="h-5 w-5" />;
+      case LOG_ACTION.REFUNDED:
+        return <RotateCcwIcon className="h-5 w-5" />;
+      case LOG_ACTION.HELD:
+        return <HandCoinsIcon className="h-5 w-5" />;
+      case LOG_ACTION.RELEASED:
+        return <GiftIcon className="h-5 w-5" />;
       default:
         return null;
     }
   };
 
-  // Get transaction type display name
+  // Get transaction type display name (using new LOG_ACTION values)
   const getTransactionTypeDisplayName = (type: string) => {
     switch (type) {
-      case CREDIT_TRANSACTION_TYPE.MONTHLY_REFRESH:
-        return t('types.MONTHLY_REFRESH');
-      case CREDIT_TRANSACTION_TYPE.REGISTER_GIFT:
-        return t('types.REGISTER_GIFT');
-      case CREDIT_TRANSACTION_TYPE.PURCHASE_PACKAGE:
-        return t('types.PURCHASE');
-      case CREDIT_TRANSACTION_TYPE.USAGE:
-        return t('types.USAGE');
-      case CREDIT_TRANSACTION_TYPE.EXPIRE:
-        return t('types.EXPIRE');
-      case CREDIT_TRANSACTION_TYPE.SUBSCRIPTION_RENEWAL:
-        return t('types.SUBSCRIPTION_RENEWAL');
-      case CREDIT_TRANSACTION_TYPE.LIFETIME_MONTHLY:
-        return t('types.LIFETIME_MONTHLY');
+      case LOG_ACTION.GRANTED:
+        return t('types.granted');
+      case LOG_ACTION.CONSUMED:
+        return t('types.consumed');
+      case LOG_ACTION.EXPIRED:
+        return t('types.expired');
+      case LOG_ACTION.REFUNDED:
+        return t('types.refunded');
+      case LOG_ACTION.HELD:
+        return t('types.held');
+      case LOG_ACTION.RELEASED:
+        return t('types.released');
       default:
         return type;
     }
@@ -182,26 +175,28 @@ export function CreditTransactionsTable({
   const typeFilterOptions = useMemo(
     () => [
       {
-        label: t('types.MONTHLY_REFRESH'),
-        value: CREDIT_TRANSACTION_TYPE.MONTHLY_REFRESH,
+        label: t('types.granted'),
+        value: LOG_ACTION.GRANTED,
       },
       {
-        label: t('types.REGISTER_GIFT'),
-        value: CREDIT_TRANSACTION_TYPE.REGISTER_GIFT,
+        label: t('types.consumed'),
+        value: LOG_ACTION.CONSUMED,
       },
       {
-        label: t('types.PURCHASE'),
-        value: CREDIT_TRANSACTION_TYPE.PURCHASE_PACKAGE,
-      },
-      { label: t('types.USAGE'), value: CREDIT_TRANSACTION_TYPE.USAGE },
-      { label: t('types.EXPIRE'), value: CREDIT_TRANSACTION_TYPE.EXPIRE },
-      {
-        label: t('types.SUBSCRIPTION_RENEWAL'),
-        value: CREDIT_TRANSACTION_TYPE.SUBSCRIPTION_RENEWAL,
+        label: t('types.expired'),
+        value: LOG_ACTION.EXPIRED,
       },
       {
-        label: t('types.LIFETIME_MONTHLY'),
-        value: CREDIT_TRANSACTION_TYPE.LIFETIME_MONTHLY,
+        label: t('types.refunded'),
+        value: LOG_ACTION.REFUNDED,
+      },
+      {
+        label: t('types.held'),
+        value: LOG_ACTION.HELD,
+      },
+      {
+        label: t('types.released'),
+        value: LOG_ACTION.RELEASED,
       },
     ],
     [t]
@@ -256,10 +251,7 @@ export function CreditTransactionsTable({
         id: 'balance',
         accessorKey: 'balance',
         header: ({ column }) => (
-          <DataTableColumnHeader
-            column={column}
-            label={t('columns.balance')}
-          />
+          <DataTableColumnHeader column={column} label={t('columns.balance')} />
         ),
         cell: ({ row }) => {
           const transaction = row.original;
@@ -558,9 +550,9 @@ export function CreditTransactionsTable({
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
                     </TableHead>
                   ))}
                 </TableRow>

@@ -1,10 +1,10 @@
+import { randomUUID } from 'crypto';
 import { getDb } from '@/db';
 import { userAttribution } from '@/db/schema';
 import { auth } from '@/lib/auth';
 import { eq } from 'drizzle-orm';
 import { headers } from 'next/headers';
 import { type NextRequest, NextResponse } from 'next/server';
-import { randomUUID } from 'crypto';
 
 interface AttributionPayload {
   visitorId: string;
@@ -42,7 +42,7 @@ interface AttributionPayload {
 
 /**
  * POST /api/attribution
- * 
+ *
  * Upserts attribution data for a visitor using onConflict to avoid race conditions.
  * - First-touch fields are only set once (via onConflict)
  * - Last-touch fields are updated on each call with new data
@@ -92,57 +92,66 @@ export async function POST(request: NextRequest) {
     try {
       // For new authenticated users, include reg* in the INSERT
       // This fixes the bug where reg* was never written for users who register and sync in one flow
-      const regFields = (userId && isNewUser) ? {
-        regPage: regSessionData?.landingPage || null,
-        regRef: regSessionData?.referrer || null,
-        regSource: regSessionData?.source || null,
-        regMedium: regSessionData?.medium || null,
-        regCampaign: regSessionData?.campaign || null,
-      } : {
-        regPage: null,
-        regRef: null,
-        regSource: null,
-        regMedium: null,
-        regCampaign: null,
-      };
+      const regFields =
+        userId && isNewUser
+          ? {
+              regPage: regSessionData?.landingPage || null,
+              regRef: regSessionData?.referrer || null,
+              regSource: regSessionData?.source || null,
+              regMedium: regSessionData?.medium || null,
+              regCampaign: regSessionData?.campaign || null,
+            }
+          : {
+              regPage: null,
+              regRef: null,
+              regSource: null,
+              regMedium: null,
+              regCampaign: null,
+            };
 
-      await db.insert(userAttribution).values({
-        id: randomUUID(),
-        visitorId: body.visitorId,
-        userId,
+      await db
+        .insert(userAttribution)
+        .values({
+          id: randomUUID(),
+          visitorId: body.visitorId,
+          userId,
 
-        // First Touch
-        firstTouchSource: body.firstTouch?.source || null,
-        firstTouchMedium: body.firstTouch?.medium || null,
-        firstTouchCampaign: body.firstTouch?.campaign || null,
-        landingPage: body.landingPage || body.firstTouch?.landingPage || null,
-        referrer: body.referrer || body.firstTouch?.referrer || null,
-        firstSeenAt: now,
+          // First Touch
+          firstTouchSource: body.firstTouch?.source || null,
+          firstTouchMedium: body.firstTouch?.medium || null,
+          firstTouchCampaign: body.firstTouch?.campaign || null,
+          landingPage: body.landingPage || body.firstTouch?.landingPage || null,
+          referrer: body.referrer || body.firstTouch?.referrer || null,
+          firstSeenAt: now,
 
-        // Last Touch
-        lastTouchSource: body.lastTouch?.source || body.firstTouch?.source || null,
-        lastTouchMedium: body.lastTouch?.medium || body.firstTouch?.medium || null,
-        lastTouchCampaign: body.lastTouch?.campaign || body.firstTouch?.campaign || null,
-        lastSeenAt: now,
-
-        // Registration attribution: set for new users on insert
-        ...regFields,
-
-        createdAt: now,
-        updatedAt: now,
-      }).onConflictDoUpdate({
-        target: userAttribution.visitorId,
-        set: {
-          updatedAt: now,
+          // Last Touch
+          lastTouchSource:
+            body.lastTouch?.source || body.firstTouch?.source || null,
+          lastTouchMedium:
+            body.lastTouch?.medium || body.firstTouch?.medium || null,
+          lastTouchCampaign:
+            body.lastTouch?.campaign || body.firstTouch?.campaign || null,
           lastSeenAt: now,
-          // Update last-touch if provided
-          ...(body.lastTouch && {
-            lastTouchSource: body.lastTouch.source,
-            lastTouchMedium: body.lastTouch.medium,
-            lastTouchCampaign: body.lastTouch.campaign,
-          }),
-        },
-      });
+
+          // Registration attribution: set for new users on insert
+          ...regFields,
+
+          createdAt: now,
+          updatedAt: now,
+        })
+        .onConflictDoUpdate({
+          target: userAttribution.visitorId,
+          set: {
+            updatedAt: now,
+            lastSeenAt: now,
+            // Update last-touch if provided
+            ...(body.lastTouch && {
+              lastTouchSource: body.lastTouch.source,
+              lastTouchMedium: body.lastTouch.medium,
+              lastTouchCampaign: body.lastTouch.campaign,
+            }),
+          },
+        });
 
       // If we need to update userId or reg* fields for EXISTING records, do a separate update
       // (onConflict's set clause doesn't have access to the existing row values)
@@ -152,7 +161,10 @@ export async function POST(request: NextRequest) {
       if (userId) {
         // Now check the current visitorId's record
         const existing = await db
-          .select({ userId: userAttribution.userId, regSource: userAttribution.regSource })
+          .select({
+            userId: userAttribution.userId,
+            regSource: userAttribution.regSource,
+          })
           .from(userAttribution)
           .where(eq(userAttribution.visitorId, body.visitorId))
           .limit(1);
@@ -184,7 +196,10 @@ export async function POST(request: NextRequest) {
     } catch (insertError) {
       // If insert fails due to race condition, it's fine - record already exists
       // Log but don't fail
-      console.log('Attribution insert conflict handled:', (insertError as Error).message?.substring(0, 100));
+      console.log(
+        'Attribution insert conflict handled:',
+        (insertError as Error).message?.substring(0, 100)
+      );
     }
 
     return NextResponse.json({ success: true });
@@ -196,4 +211,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

@@ -1,8 +1,5 @@
 import { websiteConfig } from '@/config/website';
-import {
-  addMonthlyFreeCredits,
-  addRegisterGiftCredits,
-} from '@/credits/credits';
+import { GRANT_PRIORITY, GRANT_TYPE, createGrant } from '@/credits/grant';
 import { getDb } from '@/db/index';
 import { defaultMessages } from '@/i18n/messages';
 import { LOCALE_COOKIE_NAME, routing } from '@/i18n/routing';
@@ -13,6 +10,7 @@ import { emailHarmony } from 'better-auth-harmony';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { admin } from 'better-auth/plugins';
 import { parse as parseCookies } from 'cookie';
+import { addDays } from 'date-fns';
 import type { Locale } from 'next-intl';
 import { getAllPricePlans } from './price-plan';
 import { getBaseUrl, getUrlWithLocaleInCallbackUrl } from './urls/urls';
@@ -196,31 +194,57 @@ async function onCreateUser(user: User) {
     }, 2000);
   }
 
-  // Add register gift credits to the user if enabled in website config
+  // Add register gift credits using new grant system
   if (
     websiteConfig.credits.enableCredits &&
     websiteConfig.credits.registerGiftCredits.enable &&
     websiteConfig.credits.registerGiftCredits.amount > 0
   ) {
     try {
-      await addRegisterGiftCredits(user.id);
-      console.log(`added register gift credits for user ${user.id}`);
+      const amount = websiteConfig.credits.registerGiftCredits.amount;
+      const expireDays = websiteConfig.credits.registerGiftCredits.expireDays;
+
+      await createGrant({
+        userId: user.id,
+        type: GRANT_TYPE.SIGNUP_BONUS,
+        amount,
+        priority: GRANT_PRIORITY.SIGNUP_BONUS,
+        expiresAt: expireDays ? addDays(new Date(), expireDays) : null,
+        sourceRef: `signup_bonus_${user.id}`,
+      });
+      console.log(
+        `Created signup bonus grant (${amount} credits) for user ${user.id}`
+      );
     } catch (error) {
       console.error('Register gift credits error:', error);
     }
   }
 
-  // Add free monthly credits to the user if enabled in website config
+  // Add free monthly credits using new grant system
   if (websiteConfig.credits.enableCredits) {
     const pricePlans = getAllPricePlans();
     // NOTICE: make sure the free plan is not disabled and has credits enabled
     const freePlan = pricePlans.find(
       (plan) => plan.isFree && !plan.disabled && plan.credits?.enable
     );
-    if (freePlan) {
+    if (freePlan && freePlan.credits) {
       try {
-        await addMonthlyFreeCredits(user.id, freePlan.id);
-        console.log(`added Free monthly credits for user ${user.id}`);
+        const now = new Date();
+        const amount = freePlan.credits.amount;
+        const expireDays = freePlan.credits.expireDays;
+
+        // sourceRef format must match cron.ts batchGrant: monthly_free_{userId}_{year}_{month padded}
+        await createGrant({
+          userId: user.id,
+          type: GRANT_TYPE.PROMO, // Free plan monthly credits treated as promo
+          amount,
+          priority: GRANT_PRIORITY.PROMO,
+          expiresAt: expireDays ? addDays(now, expireDays) : null,
+          sourceRef: `monthly_free_${user.id}_${now.getFullYear()}_${String(now.getMonth() + 1).padStart(2, '0')}`,
+        });
+        console.log(
+          `Created free monthly grant (${amount} credits) for user ${user.id}`
+        );
       } catch (error) {
         console.error('Free monthly credits error:', error);
       }

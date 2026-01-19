@@ -1,10 +1,8 @@
 'use server';
 
-import { getDb } from '@/db';
-import { creditTransaction } from '@/db/schema';
+import { getTransactionLogs } from '@/credits/grant';
 import type { User } from '@/lib/auth-types';
 import { userActionClient } from '@/lib/safe-action';
-import { and, asc, count as countFn, desc, eq, ilike, or } from 'drizzle-orm';
 import { z } from 'zod';
 
 // Define the schema for getCreditTransactions parameters
@@ -32,20 +30,7 @@ const getCreditTransactionsSchema = z.object({
     .default([]),
 });
 
-// Define sort field mapping
-const sortFieldMap = {
-  type: creditTransaction.type,
-  amount: creditTransaction.amount,
-  balance: creditTransaction.balance,
-  description: creditTransaction.description,
-  createdAt: creditTransaction.createdAt,
-  updatedAt: creditTransaction.updatedAt,
-  expirationDate: creditTransaction.expirationDate,
-  expiredAt: creditTransaction.expiredAt,
-  paymentId: creditTransaction.paymentId,
-} as const;
-
-// Create a safe action for getting credit transactions
+// Create a safe action for getting credit transactions (from new Grant system)
 export const getCreditTransactionsAction = userActionClient
   .schema(getCreditTransactionsSchema)
   .action(async ({ parsedInput, ctx }) => {
@@ -53,87 +38,29 @@ export const getCreditTransactionsAction = userActionClient
       const { pageIndex, pageSize, search, sorting, filters } = parsedInput;
       const currentUser = (ctx as { user: User }).user;
 
-      // Build where conditions
-      const whereConditions = [eq(creditTransaction.userId, currentUser.id)];
-
-      // Search logic: text fields use ilike, and if search is a number, also search amount fields
-      if (search) {
-        const searchConditions = [];
-        // Always search text fields
-        searchConditions.push(
-          ilike(creditTransaction.type, `%${search}%`),
-          ilike(creditTransaction.paymentId, `%${search}%`),
-          ilike(creditTransaction.description, `%${search}%`)
-        );
-
-        // If search is a valid number, also search numeric fields
-        const numericSearch = Number.parseInt(search, 10);
-        if (!Number.isNaN(numericSearch)) {
-          searchConditions.push(
-            eq(creditTransaction.amount, numericSearch),
-            eq(creditTransaction.balance, numericSearch)
-          );
-        }
-
-        // Only add search conditions if there are multiple conditions
-        if (searchConditions.length > 1) {
-          const orCondition = or(...searchConditions);
-          if (orCondition) {
-            whereConditions.push(orCondition);
-          }
-        } else if (searchConditions.length === 1) {
-          whereConditions.push(searchConditions[0]);
-        }
-      }
-
-      // Apply filters (independent of search)
-      for (const filter of filters) {
-        if (filter.id === 'type' && filter.value) {
-          whereConditions.push(eq(creditTransaction.type, filter.value));
-        }
-      }
-
-      const where = and(...whereConditions);
-
-      const offset = pageIndex * pageSize;
-
-      // Get the sort configuration
+      // Get sort configuration
       const sortConfig = sorting[0];
-      const sortField = sortConfig?.id
-        ? sortFieldMap[sortConfig.id as keyof typeof sortFieldMap]
-        : creditTransaction.createdAt;
-      const sortDirection = sortConfig?.desc ? desc : asc;
+      const sortField = sortConfig?.id || 'createdAt';
+      const sortDesc = sortConfig?.desc ?? true;
 
-      const db = await getDb();
-      const [items, [{ count }]] = await Promise.all([
-        db
-          .select({
-            id: creditTransaction.id,
-            userId: creditTransaction.userId,
-            type: creditTransaction.type,
-            description: creditTransaction.description,
-            amount: creditTransaction.amount,
-            balance: creditTransaction.balance,
-            paymentId: creditTransaction.paymentId,
-            expirationDate: creditTransaction.expirationDate,
-            expiredAt:
-              creditTransaction.expiredAt,
-            createdAt: creditTransaction.createdAt,
-            updatedAt: creditTransaction.updatedAt,
-          })
-          .from(creditTransaction)
-          .where(where)
-          .orderBy(sortDirection(sortField))
-          .limit(pageSize)
-          .offset(offset),
-        db.select({ count: countFn() }).from(creditTransaction).where(where),
-      ]);
+      // Get filter by type
+      const typeFilter = filters.find((f) => f.id === 'type');
+
+      // Query new credit_log table
+      const result = await getTransactionLogs(currentUser.id, {
+        pageIndex,
+        pageSize,
+        search: search || undefined,
+        sortField,
+        sortDesc,
+        filterType: typeFilter?.value,
+      });
 
       return {
         success: true,
         data: {
-          items,
-          total: Number(count),
+          items: result.items,
+          total: result.total,
         },
       };
     } catch (error) {

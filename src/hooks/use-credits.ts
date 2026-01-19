@@ -86,13 +86,16 @@ export function useConsumeCredits(userId: string | undefined) {
   return useMutation({
     mutationFn: async ({
       amount,
+      eventId,
       description,
     }: {
       amount: number;
-      description: string;
+      eventId: string;
+      description?: string;
     }) => {
       const result = await consumeCreditsAction({
         amount,
+        eventId,
         description,
       });
       if (!result?.data?.success) {

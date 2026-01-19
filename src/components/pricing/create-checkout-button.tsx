@@ -14,13 +14,13 @@ interface CheckoutButtonProps {
   priceId: string;
   metadata?: Record<string, string>;
   variant?:
-  | 'default'
-  | 'outline'
-  | 'destructive'
-  | 'secondary'
-  | 'ghost'
-  | 'link'
-  | null;
+    | 'default'
+    | 'outline'
+    | 'destructive'
+    | 'secondary'
+    | 'ghost'
+    | 'link'
+    | null;
   size?: 'default' | 'sm' | 'lg' | 'icon' | null;
   className?: string;
   children?: React.ReactNode;
@@ -55,10 +55,13 @@ export function CheckoutButton({
 
       // Add session attribution for payment tracking
       if (typeof window !== 'undefined') {
-        const { getSessionAttribution } = await import('@/components/tracking/attribution-tracker');
+        const { getSessionAttribution } = await import(
+          '@/components/tracking/attribution-tracker'
+        );
         const sessionAttribution = getSessionAttribution();
         if (sessionAttribution.sessionLandingPage) {
-          mergedMetadata.sessionLandingPage = sessionAttribution.sessionLandingPage;
+          mergedMetadata.sessionLandingPage =
+            sessionAttribution.sessionLandingPage;
         }
         if (sessionAttribution.sessionReferrer) {
           mergedMetadata.sessionReferrer = sessionAttribution.sessionReferrer;
@@ -94,11 +97,11 @@ export function CheckoutButton({
         const affonsoReferral =
           typeof document !== 'undefined'
             ? (() => {
-              const match = document.cookie.match(
-                /(?:^|; )affonso_referral=([^;]*)/
-              );
-              return match ? decodeURIComponent(match[1]) : null;
-            })()
+                const match = document.cookie.match(
+                  /(?:^|; )affonso_referral=([^;]*)/
+                );
+                return match ? decodeURIComponent(match[1]) : null;
+              })()
             : null;
         if (affonsoReferral) {
           console.log(

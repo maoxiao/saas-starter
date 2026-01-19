@@ -88,14 +88,14 @@ function parseReferrerToAttribution(referrer: string): AttributionData {
 
     // Common search engines - treat as organic
     const searchEngines: Record<string, string> = {
-      'google': 'google',
-      'bing': 'bing',
-      'yahoo': 'yahoo',
-      'duckduckgo': 'duckduckgo',
-      'baidu': 'baidu',
-      'yandex': 'yandex',
-      'ecosia': 'ecosia',
-      'ask': 'ask',
+      google: 'google',
+      bing: 'bing',
+      yahoo: 'yahoo',
+      duckduckgo: 'duckduckgo',
+      baidu: 'baidu',
+      yandex: 'yandex',
+      ecosia: 'ecosia',
+      ask: 'ask',
     };
 
     for (const [engine, source] of Object.entries(searchEngines)) {
@@ -106,15 +106,15 @@ function parseReferrerToAttribution(referrer: string): AttributionData {
 
     // Common social platforms
     const socialPlatforms: Record<string, string> = {
-      'facebook': 'facebook',
-      'twitter': 'twitter',
+      facebook: 'facebook',
+      twitter: 'twitter',
       'x.com': 'twitter',
-      'linkedin': 'linkedin',
-      'instagram': 'instagram',
-      'pinterest': 'pinterest',
-      'reddit': 'reddit',
-      'youtube': 'youtube',
-      'tiktok': 'tiktok',
+      linkedin: 'linkedin',
+      instagram: 'instagram',
+      pinterest: 'pinterest',
+      reddit: 'reddit',
+      youtube: 'youtube',
+      tiktok: 'tiktok',
     };
 
     for (const [platform, source] of Object.entries(socialPlatforms)) {
@@ -135,11 +135,11 @@ const ATTRIBUTION_LINKED_USER_KEY = 'pv_linked_user_id';
 
 /**
  * AttributionTracker Component
- * 
+ *
  * Tracks user attribution data in localStorage.
  * Data is read by checkout buttons when creating payment sessions.
  * Automatically syncs attribution when user logs in (after OAuth returns).
- * 
+ *
  * Attribution Logic:
  * - First-touch: Records the FIRST visit ever (localStorage, never overwritten)
  * - Session-entry: Records the FIRST page of current session (localStorage with 30min expiry)
@@ -168,7 +168,7 @@ export function AttributionTracker() {
         // Check if user is authenticated
         const { authClient } = await import('@/lib/auth-client');
         const session = await authClient.getSession();
-        
+
         const currentUserId = session?.data?.user?.id;
         if (!currentUserId) {
           // Not logged in yet - might need to retry
@@ -177,10 +177,12 @@ export function AttributionTracker() {
 
         // Check if this user has already been linked
         const linkedUserId = localStorage.getItem(ATTRIBUTION_LINKED_USER_KEY);
-        
+
         // Detect user switch: different user logged in
         if (linkedUserId && linkedUserId !== currentUserId) {
-          console.log('User switch detected, resetting attribution data for new user');
+          console.log(
+            'User switch detected, resetting attribution data for new user'
+          );
           // Generate new visitorId for the new user
           const newVisitorId = generateVisitorId();
           localStorage.setItem(VISITOR_ID_KEY, newVisitorId);
@@ -192,21 +194,25 @@ export function AttributionTracker() {
           // Clear linked user so next check will trigger sync
           localStorage.removeItem(ATTRIBUTION_LINKED_USER_KEY);
           // Reload page to re-capture fresh attribution data and sync
-          console.log('Reloading page to capture fresh attribution for new user');
+          console.log(
+            'Reloading page to capture fresh attribution for new user'
+          );
           window.location.reload();
           return true; // Won't reach here due to reload
         }
-        
+
         if (linkedUserId === currentUserId) {
           // Already linked this user - no need to retry
-          console.log('Attribution already linked for this user, skipping sync');
+          console.log(
+            'Attribution already linked for this user, skipping sync'
+          );
           return true;
         }
 
         // User is authenticated and not yet linked - sync attribution
         const { syncAttributionToServer } = await import('@/lib/attribution');
         const success = await syncAttributionToServer();
-        
+
         if (success) {
           // Mark this user as linked
           localStorage.setItem(ATTRIBUTION_LINKED_USER_KEY, currentUserId);
@@ -223,19 +229,21 @@ export function AttributionTracker() {
 
     const attemptSync = async () => {
       const done = await checkAndSync();
-      
+
       if (!done && retryCount < maxRetries) {
         // Not authenticated yet - retry with exponential backoff
         retryCount++;
         const delay = baseDelay * Math.pow(2, retryCount - 1); // 500ms, 1s, 2s, 4s
-        console.log(`Attribution sync: retry ${retryCount}/${maxRetries} in ${delay}ms`);
+        console.log(
+          `Attribution sync: retry ${retryCount}/${maxRetries} in ${delay}ms`
+        );
         timeoutId = setTimeout(attemptSync, delay);
       }
     };
 
     // Start first check after a short delay to allow initial page load
     timeoutId = setTimeout(attemptSync, 300);
-    
+
     return () => {
       if (timeoutId) clearTimeout(timeoutId);
     };
@@ -263,12 +271,15 @@ export function AttributionTracker() {
       // This survives OAuth redirects but expires after 30 minutes for genuine new sessions
       const storedSessionEntry = localStorage.getItem(SESSION_ENTRY_KEY);
       let sessionEntryValid = false;
-      
+
       if (storedSessionEntry) {
         try {
           const parsed: SessionEntryData = JSON.parse(storedSessionEntry);
           // Check if session entry is still valid (not expired)
-          if (parsed.timestamp && (Date.now() - parsed.timestamp) < SESSION_ENTRY_EXPIRY_MS) {
+          if (
+            parsed.timestamp &&
+            Date.now() - parsed.timestamp < SESSION_ENTRY_EXPIRY_MS
+          ) {
             sessionEntryValid = true;
           }
         } catch {
@@ -310,7 +321,8 @@ export function AttributionTracker() {
             referrer: externalReferrer || undefined,
           };
         } else if (externalReferrer) {
-          const referrerAttribution = parseReferrerToAttribution(externalReferrer);
+          const referrerAttribution =
+            parseReferrerToAttribution(externalReferrer);
           firstTouch = {
             ...referrerAttribution,
             landingPage,
@@ -368,20 +380,31 @@ export function getSessionAttribution(): {
     if (sessionEntryStr) {
       const parsed: SessionEntryData = JSON.parse(sessionEntryStr);
       // Only use if not expired
-      if (parsed.timestamp && (Date.now() - parsed.timestamp) < SESSION_ENTRY_EXPIRY_MS) {
+      if (
+        parsed.timestamp &&
+        Date.now() - parsed.timestamp < SESSION_ENTRY_EXPIRY_MS
+      ) {
         session = parsed;
       }
     }
 
-    const last: TouchDataWithPage | null = lastTouch ? JSON.parse(lastTouch) : null;
-    const first: TouchDataWithPage | null = firstTouch ? JSON.parse(firstTouch) : null;
+    const last: TouchDataWithPage | null = lastTouch
+      ? JSON.parse(lastTouch)
+      : null;
+    const first: TouchDataWithPage | null = firstTouch
+      ? JSON.parse(firstTouch)
+      : null;
 
     return {
-      sessionLandingPage: session?.landingPage || last?.landingPage || first?.landingPage,
+      sessionLandingPage:
+        session?.landingPage || last?.landingPage || first?.landingPage,
       sessionReferrer: session?.referrer || last?.referrer || first?.referrer,
-      sessionSource: session?.source || last?.source || first?.source || undefined,
-      sessionMedium: session?.medium || last?.medium || first?.medium || undefined,
-      sessionCampaign: session?.campaign || last?.campaign || first?.campaign || undefined,
+      sessionSource:
+        session?.source || last?.source || first?.source || undefined,
+      sessionMedium:
+        session?.medium || last?.medium || first?.medium || undefined,
+      sessionCampaign:
+        session?.campaign || last?.campaign || first?.campaign || undefined,
     };
   } catch {
     return {};
@@ -397,7 +420,7 @@ export function captureRegistrationSession(): void {
   try {
     // Get current session attribution (prioritizes session entry)
     const sessionAttribution = getSessionAttribution();
-    
+
     // Store as registration session (never expires - will be used when user finally logs in)
     const regSession = {
       landingPage: sessionAttribution.sessionLandingPage,
@@ -407,7 +430,7 @@ export function captureRegistrationSession(): void {
       campaign: sessionAttribution.sessionCampaign,
       capturedAt: Date.now(),
     };
-    
+
     localStorage.setItem(REGISTRATION_SESSION_KEY, JSON.stringify(regSession));
     console.log('Registration session captured:', regSession);
   } catch (error) {

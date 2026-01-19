@@ -1,4 +1,5 @@
-import { boolean, integer, pgTable, text, timestamp, index } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import { boolean, integer, pgTable, text, timestamp, index, unique } from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
 	id: text("id").primaryKey(),
@@ -132,6 +133,9 @@ export const payment = pgTable("payment", {
 	paymentPurchaseTypeIdx: index("payment_purchase_type_idx").on(table.purchaseType),
 	paymentPriceIdIdx: index("payment_price_id_idx").on(table.priceId),
 	paymentUserIdIdx: index("payment_user_id_idx").on(table.userId),
+	// Covering index for monthly grant cron: supports ROW_NUMBER() + WHERE filtering without table lookups
+	// Includes all fields needed: userId (partition), createdAt (order), status/paid (filter), priceId (select)
+	paymentUserIdCreatedAtIdx: index("payment_user_id_created_at_idx").on(table.userId, table.createdAt, table.status, table.paid, table.priceId),
 	paymentCustomerIdIdx: index("payment_customer_id_idx").on(table.customerId),
 	paymentStatusIdx: index("payment_status_idx").on(table.status),
 	paymentPaidIdx: index("payment_paid_idx").on(table.paid),
@@ -166,4 +170,91 @@ export const creditTransaction = pgTable("credit_transaction", {
 }, (table) => ({
 	creditTransactionUserIdIdx: index("credit_transaction_user_id_idx").on(table.userId),
 	creditTransactionTypeIdx: index("credit_transaction_type_idx").on(table.type),
+}));
+
+// ============================================
+// NEW CREDIT SYSTEM (Grant + Ledger Model)
+// ============================================
+
+/**
+ * Credit Grant (积分批次表)
+ * Each credit issuance (subscription, top-up, bonus, etc.) creates a separate grant.
+ * Used for priority-based waterfall deduction.
+ */
+export const creditGrant = pgTable("credit_grant", {
+	id: text("id").primaryKey(),
+	userId: text("user_id").notNull().references(() => user.id, { onDelete: 'cascade' }),
+
+	// Grant type: 'subscription' | 'topup' | 'signup_bonus' | 'promo' | 'referral' | 'compensation' | 'manual' | 'legacy'
+	type: text("type").notNull(),
+
+	// Credit amounts
+	amount: integer("amount").notNull(),     // Original grant amount
+	balance: integer("balance").notNull(),   // Remaining balance (decreases as credits are consumed)
+
+	// Priority & expiration (for waterfall deduction)
+	priority: integer("priority").notNull().default(100), // Lower number = deducted first (e.g., subscription=10, topup=20)
+	expiresAt: timestamp("expires_at"),      // Expiration time (subscription=period_end, topup=null for never)
+
+	// Effective time (for delayed activation scenarios like pre-sales)
+	// Default: same as createdAt (immediate activation)
+	// Use case: pre-sale credits that activate next month, scheduled promotions, etc.
+	effectiveAt: timestamp("effective_at").notNull().defaultNow(),
+
+	// Source reference for audit trail (UNIQUE to prevent duplicate grants from webhook retries)
+	sourceRef: text("source_ref").unique(), // Stripe subscription_id, invoice_id, checkout_session_id, etc.
+
+	isActive: boolean("is_active").notNull().default(true),
+
+	createdAt: timestamp("created_at").notNull().defaultNow(),
+	updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => ({
+	creditGrantUserIdIdx: index("credit_grant_user_id_idx").on(table.userId),
+	creditGrantTypeIdx: index("credit_grant_type_idx").on(table.type),
+	creditGrantExpiresAtIdx: index("credit_grant_expires_at_idx").on(table.expiresAt),
+	creditGrantPriorityIdx: index("credit_grant_priority_idx").on(table.priority),
+	// Partial index for expiration job: only index active grants with positive balance
+	creditGrantExpirationIdx: index("credit_grant_expiration_idx").on(table.expiresAt).where(sql`is_active = true AND balance > 0`),
+}));
+
+/**
+ * Credit Log (流水审计表)
+ * Immutable append-only ledger for all credit changes.
+ * Each grant/consume/expire/refund operation creates a log entry.
+ */
+export const creditLog = pgTable("credit_log", {
+	id: text("id").primaryKey(),
+	userId: text("user_id").notNull().references(() => user.id, { onDelete: 'cascade' }),
+	creditGrantId: text("credit_grant_id").references(() => creditGrant.id, { onDelete: 'set null' }),
+	grantType: text("grant_type"),  // Redundant copy of grant.type for stats stability when grant is deleted
+
+	// Action type: 'granted' | 'consumed' | 'expired' | 'refunded' | 'held' | 'released' | 'revoked'
+	action: text("action").notNull(),
+
+	// Amount change: positive for additions, negative for deductions
+	amountChange: integer("amount_change").notNull(),
+
+	// Idempotency key - combined with creditGrantId to prevent duplicate processing
+	// Allows one event to span multiple grants while remaining idempotent per-grant
+	eventId: text("event_id"),
+
+	// Additional context
+	reason: text("reason"), // Human-readable description (e.g., "Generated Image #1234")
+	metadata: text("metadata"), // JSON string for extra data (e.g., { model: "flux-pro", duration: 12.5 })
+
+	createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => ({
+	creditLogUserIdIdx: index("credit_log_user_id_idx").on(table.userId),
+	creditLogGrantIdIdx: index("credit_log_grant_id_idx").on(table.creditGrantId),
+	creditLogEventIdIdx: index("credit_log_event_id_idx").on(table.eventId),
+	creditLogActionIdx: index("credit_log_action_idx").on(table.action),
+	// Composite index for idempotency queries in deduction.service.ts
+	// Supports: WHERE userId = ? AND eventId = ? AND action = ?
+	creditLogUserEventActionIdx: index("credit_log_user_event_action_idx").on(table.userId, table.eventId, table.action),
+	// Composite index for time range queries in balance.service.ts (getSpentThisPeriod, getTransactionLogs)
+	// Supports: WHERE userId = ? AND createdAt BETWEEN ? AND ?
+	creditLogUserIdCreatedAtIdx: index("credit_log_user_id_created_at_idx").on(table.userId, table.createdAt),
+	// Composite unique: same event + same grant + same action cannot have duplicate logs
+	// This allows: HELD(event1, grant1) and RELEASED(event1, grant1) to coexist
+	creditLogEventGrantActionUnique: unique("credit_log_event_grant_action_unique").on(table.eventId, table.creditGrantId, table.action),
 }));

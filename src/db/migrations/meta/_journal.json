@@ -64,6 +64,13 @@
       "when": 1768715143812,
       "tag": "0008_add_user_attribution_payment_attribution",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1768829506399,
+      "tag": "0009_add_new_credit_system",
+      "breakpoints": true
     }
   ]
 }

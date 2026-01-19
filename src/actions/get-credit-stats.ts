@@ -1,51 +1,29 @@
 'use server';
 
-import { getDb } from '@/db';
-import { creditTransaction } from '@/db/schema';
+import { getExpiringCredits } from '@/credits/grant';
 import type { User } from '@/lib/auth-types';
 import { CREDITS_EXPIRATION_DAYS } from '@/lib/constants';
 import { userActionClient } from '@/lib/safe-action';
-import { addDays } from 'date-fns';
-import { and, eq, gt, gte, isNotNull, lte, sum } from 'drizzle-orm';
 
 /**
- * Get credit statistics for a user
+ * Get credit statistics for a user (from new Grant system)
  */
 export const getCreditStatsAction = userActionClient.action(async ({ ctx }) => {
   try {
     const currentUser = (ctx as { user: User }).user;
     const userId = currentUser.id;
 
-    const db = await getDb();
-    const now = new Date();
-    // Get credits expiring in the next 30 days
-    const expirationDaysFromNow = addDays(now, CREDITS_EXPIRATION_DAYS);
-
-    // Get total credits expiring in the next 30 days
-    const expiringCreditsResult = await db
-      .select({
-        totalAmount: sum(creditTransaction.balance),
-      })
-      .from(creditTransaction)
-      .where(
-        and(
-          eq(creditTransaction.userId, userId),
-          isNotNull(creditTransaction.expirationDate),
-          isNotNull(creditTransaction.balance),
-          gt(creditTransaction.balance, 0),
-          lte(creditTransaction.expirationDate, expirationDaysFromNow),
-          gte(creditTransaction.expirationDate, now)
-        )
-      );
-
-    const totalExpiringCredits =
-      Number(expiringCreditsResult[0]?.totalAmount) || 0;
+    // Get credits expiring in the next X days
+    const expiringData = await getExpiringCredits(
+      userId,
+      CREDITS_EXPIRATION_DAYS
+    );
 
     return {
       success: true,
       data: {
         expiringCredits: {
-          amount: totalExpiringCredits,
+          amount: expiringData.amount,
         },
       },
     };
