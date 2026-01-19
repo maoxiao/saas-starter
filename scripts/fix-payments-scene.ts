@@ -1,4 +1,4 @@
-import { PaymentScenes } from '@/payment/types.js';
+import { PurchaseTypes } from '@/payment/types.js';
 import dotenv from 'dotenv';
 import { eq } from 'drizzle-orm';
 import { getDb } from '../src/db/index.js';
@@ -12,7 +12,7 @@ export default async function fixPayments() {
     const payments = await db.select().from(payment);
 
     for (const record of payments) {
-      if (record.scene) {
+      if (record.purchaseType) {
         continue;
       }
       const isOneTimePayment =
@@ -23,12 +23,12 @@ export default async function fixPayments() {
           record.id,
           'isOneTimePayment:',
           isOneTimePayment,
-          'scene:',
-          record.scene
+          'purchaseType:',
+          record.purchaseType
         );
         await db
           .update(payment)
-          .set({ scene: PaymentScenes.LIFETIME })
+          .set({ purchaseType: PurchaseTypes.LIFETIME })
           .where(eq(payment.id, record.id));
       }
     }
