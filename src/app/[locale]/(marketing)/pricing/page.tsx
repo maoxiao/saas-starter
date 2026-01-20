@@ -1,4 +1,4 @@
-import FaqSection from '@/components/blocks/faqs/faqs';
+import FaqSection from '@/components/sections/faqs/faqs';
 import Container from '@/components/layout/container';
 import { PricingTable } from '@/components/pricing/pricing-table';
 
