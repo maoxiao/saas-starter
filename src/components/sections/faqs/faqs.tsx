@@ -1,54 +1,39 @@
-'use client';
-
 import { HeaderSection } from '@/components/layout/header-section';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
-import type { IconName } from 'lucide-react/dynamic';
-import { useLocale, useTranslations } from 'next-intl';
+import { getTranslations } from 'next-intl/server';
+import { FaqAccordion } from '@/components/sections/faqs/faq-accordion';
 
 type FAQItem = {
   id: string;
-  icon: IconName;
   question: string;
   answer: string;
 };
 
-export default function FaqSection() {
-  const locale = useLocale();
-  const t = useTranslations('HomePage.faqs');
+export default async function FaqSection() {
+  const t = await getTranslations('HomePage.faqs');
 
   const faqItems: FAQItem[] = [
     {
       id: 'item-1',
-      icon: 'calendar-clock',
       question: t('items.item-1.question'),
       answer: t('items.item-1.answer'),
     },
     {
       id: 'item-2',
-      icon: 'wallet',
       question: t('items.item-2.question'),
       answer: t('items.item-2.answer'),
     },
     {
       id: 'item-3',
-      icon: 'refresh-cw',
       question: t('items.item-3.question'),
       answer: t('items.item-3.answer'),
     },
     {
       id: 'item-4',
-      icon: 'hand-coins',
       question: t('items.item-4.question'),
       answer: t('items.item-4.answer'),
     },
     {
       id: 'item-5',
-      icon: 'mail',
       question: t('items.item-5.question'),
       answer: t('items.item-5.answer'),
     },
@@ -56,6 +41,35 @@ export default function FaqSection() {
 
   return (
     <section id="faqs" className="px-4 py-16">
+      {/* SEO: Hidden semantic content for crawlers */}
+      <div className="sr-only">
+        {faqItems.map((item) => (
+          <div key={item.id}>
+            <h2>{item.question}</h2>
+            <p>{item.answer}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* SEO: JSON-LD structured data for rich search results */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'FAQPage',
+            mainEntity: faqItems.map((item) => ({
+              '@type': 'Question',
+              name: item.question,
+              acceptedAnswer: {
+                '@type': 'Answer',
+                text: item.answer,
+              },
+            })),
+          }),
+        }}
+      />
+
       <div className="mx-auto max-w-4xl">
         <HeaderSection
           title={t('title')}
@@ -64,30 +78,7 @@ export default function FaqSection() {
           subtitleAs="p"
         />
 
-        <div className="mx-auto max-w-4xl mt-12">
-          <Accordion
-            type="single"
-            collapsible
-            className="ring-muted w-full rounded-2xl border px-8 py-3 shadow-sm ring-4 dark:ring-0"
-          >
-            {faqItems.map((item) => (
-              <AccordionItem
-                key={item.id}
-                value={item.id}
-                className="border-dashed"
-              >
-                <AccordionTrigger className="cursor-pointer text-base hover:no-underline">
-                  {item.question}
-                </AccordionTrigger>
-                <AccordionContent>
-                  <p className="text-base text-muted-foreground">
-                    {item.answer}
-                  </p>
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-        </div>
+        <FaqAccordion faqData={faqItems} />
       </div>
     </section>
   );
