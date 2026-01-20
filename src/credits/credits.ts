@@ -4,6 +4,7 @@ import { getDb } from '@/db';
 import { creditTransaction, userCredit } from '@/db/schema';
 import { findPlanByPlanId, findPlanByPriceId } from '@/lib/price-plan';
 import { addDays, isAfter } from 'date-fns';
+import { addDaysUTC } from '@/lib/date-utils';
 import { and, asc, eq, gt, isNull, not, or, sql } from 'drizzle-orm';
 import { CREDIT_TRANSACTION_TYPE } from './types';
 
@@ -168,7 +169,7 @@ export async function addCredits({
     amount,
     description,
     paymentId,
-    expirationDate: expireDays ? addDays(new Date(), expireDays) : undefined,
+    expirationDate: expireDays ? addDaysUTC(Date.now(), expireDays) : undefined,
   });
 }
 
@@ -363,8 +364,8 @@ export async function processExpiredCredits(userId: string) {
 export async function canAddCreditsByType(userId: string, creditType: string) {
   const db = await getDb();
   const now = new Date();
-  const currentMonth = now.getMonth();
-  const currentYear = now.getFullYear();
+  const currentMonth = now.getUTCMonth();
+  const currentYear = now.getUTCFullYear();
 
   // Check if user has already received this type of credits this month
   const existingTransaction = await db
@@ -460,16 +461,16 @@ export async function addMonthlyFreeCredits(userId: string, planId: string) {
       userId,
       amount: credits,
       type: CREDIT_TRANSACTION_TYPE.MONTHLY_REFRESH,
-      description: `Free monthly credits: ${credits} for ${now.getFullYear()}-${now.getMonth() + 1}`,
+      description: `Free monthly credits: ${credits} for ${now.getUTCFullYear()}-${now.getUTCMonth() + 1}`,
       expireDays,
     });
 
     console.log(
-      `addMonthlyFreeCredits, ${credits} credits for user ${userId}, date: ${now.getFullYear()}-${now.getMonth() + 1}`
+      `addMonthlyFreeCredits, ${credits} credits for user ${userId}, date: ${now.getUTCFullYear()}-${now.getUTCMonth() + 1}`
     );
   } else {
     console.log(
-      `addMonthlyFreeCredits, no new month for user ${userId}, date: ${now.getFullYear()}-${now.getMonth() + 1}`
+      `addMonthlyFreeCredits, no new month for user ${userId}, date: ${now.getUTCFullYear()}-${now.getUTCMonth() + 1}`
     );
   }
 }
@@ -509,16 +510,16 @@ export async function addSubscriptionCredits(userId: string, priceId: string) {
       userId,
       amount: credits,
       type: CREDIT_TRANSACTION_TYPE.SUBSCRIPTION_RENEWAL,
-      description: `Subscription renewal credits: ${credits} for ${now.getFullYear()}-${now.getMonth() + 1}`,
+      description: `Subscription renewal credits: ${credits} for ${now.getUTCFullYear()}-${now.getUTCMonth() + 1}`,
       expireDays,
     });
 
     console.log(
-      `addSubscriptionCredits, ${credits} credits for user ${userId}, priceId: ${priceId}, date: ${now.getFullYear()}-${now.getMonth() + 1}`
+      `addSubscriptionCredits, ${credits} credits for user ${userId}, priceId: ${priceId}, date: ${now.getUTCFullYear()}-${now.getUTCMonth() + 1}`
     );
   } else {
     console.log(
-      `addSubscriptionCredits, no new month for user ${userId}, date: ${now.getFullYear()}-${now.getMonth() + 1}`
+      `addSubscriptionCredits, no new month for user ${userId}, date: ${now.getUTCFullYear()}-${now.getUTCMonth() + 1}`
     );
   }
 }
@@ -562,16 +563,16 @@ export async function addLifetimeMonthlyCredits(
       userId,
       amount: credits,
       type: CREDIT_TRANSACTION_TYPE.LIFETIME_MONTHLY,
-      description: `Lifetime monthly credits: ${credits} for ${now.getFullYear()}-${now.getMonth() + 1}`,
+      description: `Lifetime monthly credits: ${credits} for ${now.getUTCFullYear()}-${now.getUTCMonth() + 1}`,
       expireDays,
     });
 
     console.log(
-      `addLifetimeMonthlyCredits, ${credits} credits for user ${userId}, date: ${now.getFullYear()}-${now.getMonth() + 1}`
+      `addLifetimeMonthlyCredits, ${credits} credits for user ${userId}, date: ${now.getUTCFullYear()}-${now.getUTCMonth() + 1}`
     );
   } else {
     console.log(
-      `addLifetimeMonthlyCredits, no new month for user ${userId}, date: ${now.getFullYear()}-${now.getMonth() + 1}`
+      `addLifetimeMonthlyCredits, no new month for user ${userId}, date: ${now.getUTCFullYear()}-${now.getUTCMonth() + 1}`
     );
   }
 }

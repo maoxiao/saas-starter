@@ -8,12 +8,12 @@ export const user = pgTable("user", {
 	normalizedEmail: text('normalized_email').unique(),
 	emailVerified: boolean('email_verified').notNull(),
 	image: text('image'),
-	createdAt: timestamp('created_at').notNull(),
-	updatedAt: timestamp('updated_at').notNull(),
+	createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
+	updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
 	role: text('role'),
 	banned: boolean('banned'),
 	banReason: text('ban_reason'),
-	banExpires: timestamp('ban_expires'),
+	banExpires: timestamp('ban_expires', { withTimezone: true }),
 	customerId: text('customer_id'),
 }, (table) => ({
 	userIdIdx: index("user_id_idx").on(table.id),
@@ -33,13 +33,13 @@ export const userAttribution = pgTable("user_attribution", {
 	firstTouchCampaign: text("first_touch_campaign"),
 	landingPage: text("landing_page"),
 	referrer: text("referrer"),
-	firstSeenAt: timestamp("first_seen_at").notNull().defaultNow(),
+	firstSeenAt: timestamp("first_seen_at", { withTimezone: true }).notNull().defaultNow(),
 
 	// Last Touch (updated on each visit with UTM params)
 	lastTouchSource: text("last_touch_source"),
 	lastTouchMedium: text("last_touch_medium"),
 	lastTouchCampaign: text("last_touch_campaign"),
-	lastSeenAt: timestamp("last_seen_at").notNull().defaultNow(),
+	lastSeenAt: timestamp("last_seen_at", { withTimezone: true }).notNull().defaultNow(),
 
 	// Registration Session Attribution (set once when user registers)
 	regPage: text("reg_page"), // Landing page of registration session
@@ -48,8 +48,8 @@ export const userAttribution = pgTable("user_attribution", {
 	regMedium: text("reg_medium"), // UTM medium of registration session
 	regCampaign: text("reg_campaign"), // UTM campaign of registration session
 
-	createdAt: timestamp("created_at").notNull().defaultNow(),
-	updatedAt: timestamp("updated_at").notNull().defaultNow(),
+	createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+	updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (table) => ({
 	userAttributionVisitorIdIdx: index("user_attribution_visitor_id_idx").on(table.visitorId),
 	userAttributionUserIdIdx: index("user_attribution_user_id_idx").on(table.userId),
@@ -57,10 +57,10 @@ export const userAttribution = pgTable("user_attribution", {
 
 export const session = pgTable("session", {
 	id: text("id").primaryKey(),
-	expiresAt: timestamp('expires_at').notNull(),
+	expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
 	token: text('token').notNull().unique(),
-	createdAt: timestamp('created_at').notNull(),
-	updatedAt: timestamp('updated_at').notNull(),
+	createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
+	updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
 	ipAddress: text('ip_address'),
 	userAgent: text('user_agent'),
 	userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
@@ -78,12 +78,12 @@ export const account = pgTable("account", {
 	accessToken: text('access_token'),
 	refreshToken: text('refresh_token'),
 	idToken: text('id_token'),
-	accessTokenExpiresAt: timestamp('access_token_expires_at'),
-	refreshTokenExpiresAt: timestamp('refresh_token_expires_at'),
+	accessTokenExpiresAt: timestamp('access_token_expires_at', { withTimezone: true }),
+	refreshTokenExpiresAt: timestamp('refresh_token_expires_at', { withTimezone: true }),
 	scope: text('scope'),
 	password: text('password'),
-	createdAt: timestamp('created_at').notNull(),
-	updatedAt: timestamp('updated_at').notNull()
+	createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
+	updatedAt: timestamp('updated_at', { withTimezone: true }).notNull()
 }, (table) => ({
 	accountUserIdIdx: index("account_user_id_idx").on(table.userId),
 	accountAccountIdIdx: index("account_account_id_idx").on(table.accountId),
@@ -94,9 +94,9 @@ export const verification = pgTable("verification", {
 	id: text("id").primaryKey(),
 	identifier: text('identifier').notNull(),
 	value: text('value').notNull(),
-	expiresAt: timestamp('expires_at').notNull(),
-	createdAt: timestamp('created_at'),
-	updatedAt: timestamp('updated_at')
+	expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+	createdAt: timestamp('created_at', { withTimezone: true }),
+	updatedAt: timestamp('updated_at', { withTimezone: true })
 });
 
 export const payment = pgTable("payment", {
@@ -112,11 +112,11 @@ export const payment = pgTable("payment", {
 	invoiceId: text('invoice_id').unique(), // unique constraint for avoiding duplicate processing
 	status: text('status').notNull(),
 	paid: boolean('paid').notNull().default(false), // indicates whether payment is completed (set in invoice.paid event)
-	periodStart: timestamp('period_start'),
-	periodEnd: timestamp('period_end'),
+	periodStart: timestamp('period_start', { withTimezone: true }),
+	periodEnd: timestamp('period_end', { withTimezone: true }),
 	cancelAtPeriodEnd: boolean('cancel_at_period_end'),
-	trialStart: timestamp('trial_start'),
-	trialEnd: timestamp('trial_end'),
+	trialStart: timestamp('trial_start', { withTimezone: true }),
+	trialEnd: timestamp('trial_end', { withTimezone: true }),
 	// Session attribution at conversion time (captures the session that led to payment)
 	sessionLandingPage: text('session_landing_page'), // First page user visited in this checkout session
 	sessionReferrer: text('session_referrer'), // External referrer for this checkout session
@@ -126,8 +126,8 @@ export const payment = pgTable("payment", {
 	// Amount
 	amount: integer('amount'), // in cents
 	currency: text('currency'),
-	createdAt: timestamp('created_at').notNull().defaultNow(),
-	updatedAt: timestamp('updated_at').notNull().defaultNow(),
+	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+	updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 }, (table) => ({
 	paymentTypeIdx: index("payment_type_idx").on(table.type),
 	paymentPurchaseTypeIdx: index("payment_purchase_type_idx").on(table.purchaseType),
@@ -148,9 +148,9 @@ export const userCredit = pgTable("user_credit", {
 	id: text("id").primaryKey(),
 	userId: text("user_id").notNull().references(() => user.id, { onDelete: 'cascade' }),
 	currentCredits: integer("current_credits").notNull().default(0),
-	lastRefreshAt: timestamp("last_refresh_at"), // deprecated
-	createdAt: timestamp("created_at").notNull().defaultNow(),
-	updatedAt: timestamp("updated_at").notNull().defaultNow(),
+	lastRefreshAt: timestamp("last_refresh_at", { withTimezone: true }), // deprecated
+	createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+	updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (table) => ({
 	userCreditUserIdIdx: index("user_credit_user_id_idx").on(table.userId),
 }));
@@ -163,10 +163,10 @@ export const creditTransaction = pgTable("credit_transaction", {
 	amount: integer("amount").notNull(),
 	balance: integer("balance"), // remaining credit amount
 	paymentId: text("payment_id"), // field name is paymentId, but actually it's invoiceId
-	expirationDate: timestamp("expiration_date"),
-	expiredAt: timestamp("expired_at"), // timestamp when expiration was processed
-	createdAt: timestamp("created_at").notNull().defaultNow(),
-	updatedAt: timestamp("updated_at").notNull().defaultNow(),
+	expirationDate: timestamp("expiration_date", { withTimezone: true }),
+	expiredAt: timestamp("expired_at", { withTimezone: true }), // timestamp when expiration was processed
+	createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+	updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (table) => ({
 	creditTransactionUserIdIdx: index("credit_transaction_user_id_idx").on(table.userId),
 	creditTransactionTypeIdx: index("credit_transaction_type_idx").on(table.type),
@@ -194,20 +194,20 @@ export const creditGrant = pgTable("credit_grant", {
 
 	// Priority & expiration (for waterfall deduction)
 	priority: integer("priority").notNull().default(100), // Lower number = deducted first (e.g., subscription=10, topup=20)
-	expiresAt: timestamp("expires_at"),      // Expiration time (subscription=period_end, topup=null for never)
+	expiresAt: timestamp("expires_at", { withTimezone: true }),      // Expiration time (subscription=period_end, topup=null for never)
 
 	// Effective time (for delayed activation scenarios like pre-sales)
 	// Default: same as createdAt (immediate activation)
 	// Use case: pre-sale credits that activate next month, scheduled promotions, etc.
-	effectiveAt: timestamp("effective_at").notNull().defaultNow(),
+	effectiveAt: timestamp("effective_at", { withTimezone: true }).notNull().defaultNow(),
 
 	// Source reference for audit trail (UNIQUE to prevent duplicate grants from webhook retries)
 	sourceRef: text("source_ref").unique(), // Stripe subscription_id, invoice_id, checkout_session_id, etc.
 
 	isActive: boolean("is_active").notNull().default(true),
 
-	createdAt: timestamp("created_at").notNull().defaultNow(),
-	updatedAt: timestamp("updated_at").notNull().defaultNow(),
+	createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+	updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (table) => ({
 	creditGrantUserIdIdx: index("credit_grant_user_id_idx").on(table.userId),
 	creditGrantTypeIdx: index("credit_grant_type_idx").on(table.type),
@@ -242,7 +242,7 @@ export const creditLog = pgTable("credit_log", {
 	reason: text("reason"), // Human-readable description (e.g., "Generated Image #1234")
 	metadata: text("metadata"), // JSON string for extra data (e.g., { model: "flux-pro", duration: 12.5 })
 
-	createdAt: timestamp("created_at").notNull().defaultNow(),
+	createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (table) => ({
 	creditLogUserIdIdx: index("credit_log_user_id_idx").on(table.userId),
 	creditLogGrantIdIdx: index("credit_log_grant_id_idx").on(table.creditGrantId),

@@ -20,6 +20,7 @@ import {
   or,
   sql,
 } from 'drizzle-orm';
+import { getCurrentMonthUTC } from '@/lib/date-utils';
 import {
   type BalanceBreakdown,
   GRANT_TYPE,
@@ -129,11 +130,10 @@ export async function getSpentThisPeriod(
   const db = await getDb();
   const now = new Date();
 
-  // Default to current month
-  const start = periodStart || new Date(now.getFullYear(), now.getMonth(), 1);
-  const end =
-    periodEnd ||
-    new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+  // Default to current month (UTC)
+  const { start: defaultStart, end: defaultEnd } = getCurrentMonthUTC(now);
+  const start = periodStart || defaultStart;
+  const end = periodEnd || defaultEnd;
 
   // Get all CONSUMED and REFUNDED logs in the period
   // CONSUMED: negative amountChange (credits deducted)

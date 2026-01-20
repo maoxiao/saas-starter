@@ -3,6 +3,7 @@ import { websiteConfig } from '@/config/website';
 // New Grant System
 import { GRANT_PRIORITY, GRANT_TYPE, createGrant } from '@/credits/grant';
 import { getCreditPackageById } from '@/credits/server';
+import { addDaysUTC } from '@/lib/date-utils';
 import { getDb } from '@/db';
 import { payment, user } from '@/db/schema';
 import type { Payment } from '@/db/types';
@@ -871,7 +872,7 @@ export class StripeProvider implements PaymentProvider {
       amount: Number.parseInt(credits),
       priority: GRANT_PRIORITY.TOPUP,
       expiresAt: creditPackage.expireDays
-        ? new Date(Date.now() + creditPackage.expireDays * 24 * 60 * 60 * 1000)
+        ? addDaysUTC(Date.now(), creditPackage.expireDays)
         : null,
       sourceRef: invoice.id,
     });

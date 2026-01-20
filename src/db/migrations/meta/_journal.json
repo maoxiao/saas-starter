@@ -71,6 +71,13 @@
       "when": 1768829506399,
       "tag": "0009_add_new_credit_system",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1768840185803,
+      "tag": "0010_convert_timestamps_to_timestamptz",
+      "breakpoints": true
     }
   ]
 }

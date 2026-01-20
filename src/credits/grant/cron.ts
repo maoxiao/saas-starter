@@ -3,6 +3,7 @@ import { creditGrant, payment, user } from '@/db/schema';
 import { findPlanByPriceId, getAllPricePlans } from '@/lib/price-plan';
 import { PlanIntervals } from '@/payment/types';
 import { addDays } from 'date-fns';
+import { addDaysUTC, getMonthStartUTC, getMonthEndUTC } from '@/lib/date-utils';
 import { and, eq, gt, gte, inArray, isNull, lt, or, sql } from 'drizzle-orm';
 import { createGrant, processExpiredGrants } from '@/credits/grant/grant.service';
 import { GRANT_PRIORITY, GRANT_TYPE } from '@/credits/grant/types';
@@ -21,8 +22,8 @@ async function getUsersWithGrantThisMonth(
   if (userIds.length === 0) return new Set();
 
   const db = await getDb();
-  const startOfMonth = new Date(year, month - 1, 1);
-  const endOfMonth = new Date(year, month, 1);
+  const startOfMonth = getMonthStartUTC(year, month);
+  const endOfMonth = getMonthEndUTC(year, month);
 
   const existing = await db
     .select({ userId: creditGrant.userId })
@@ -59,8 +60,8 @@ export async function grantMonthlyCredits(
 ): Promise<GrantResult> {
   console.log(`>>> grantMonthlyCredits (dryRun=${dryRun})`);
   const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth() + 1;
+  const year = now.getUTCFullYear();
+  const month = now.getUTCMonth() + 1;
   const db = await getDb();
 
   // 1. Expired Grants
@@ -261,7 +262,7 @@ async function batchGrant(
         type: type as any,
         amount,
         priority,
-        expiresAt: expireDays ? addDays(new Date(), expireDays) : null,
+        expiresAt: expireDays ? addDaysUTC(Date.now(), expireDays) : null,
         sourceRef,
       });
       count++;

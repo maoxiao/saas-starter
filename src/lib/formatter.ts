@@ -16,8 +16,13 @@ export function formatPrice(price: number, currency: string): string {
 
 /**
  * Format a date for display
+ * 
+ * NOTE: This function intentionally uses local timezone methods (getFullYear, getMonth, getDate)
+ * for display purposes. It formats dates in the user's local timezone, not UTC.
+ * For server-side date calculations, use UTC methods from @/lib/date-utils instead.
+ * 
  * @param date Date to format
- * @returns Formatted date string in the format "Month Day, Year"
+ * @returns Formatted date string in the format "YYYY/MM/DD"
  */
 export function formatDate(date: Date): string {
   const year = date.getFullYear();

@@ -10,7 +10,7 @@ import { emailHarmony } from 'better-auth-harmony';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { admin } from 'better-auth/plugins';
 import { parse as parseCookies } from 'cookie';
-import { addDays } from 'date-fns';
+import { addDaysUTC } from '@/lib/date-utils';
 import type { Locale } from 'next-intl';
 import { getAllPricePlans } from './price-plan';
 import { getBaseUrl, getUrlWithLocaleInCallbackUrl } from './urls/urls';
@@ -209,7 +209,7 @@ async function onCreateUser(user: User) {
         type: GRANT_TYPE.SIGNUP_BONUS,
         amount,
         priority: GRANT_PRIORITY.SIGNUP_BONUS,
-        expiresAt: expireDays ? addDays(new Date(), expireDays) : null,
+        expiresAt: expireDays ? addDaysUTC(new Date(), expireDays) : null,
         sourceRef: `signup_bonus_${user.id}`,
       });
       console.log(
@@ -239,7 +239,7 @@ async function onCreateUser(user: User) {
           type: GRANT_TYPE.PROMO, // Free plan monthly credits treated as promo
           amount,
           priority: GRANT_PRIORITY.PROMO,
-          expiresAt: expireDays ? addDays(now, expireDays) : null,
+          expiresAt: expireDays ? addDaysUTC(now, expireDays) : null,
           sourceRef: `monthly_free_${user.id}_${now.getFullYear()}_${String(now.getMonth() + 1).padStart(2, '0')}`,
         });
         console.log(

@@ -7,7 +7,18 @@ import { NextResponse } from 'next/server';
  * GET /api/credits/spent
  *
  * Returns credits spent in the current billing period, broken down by type.
- * Optionally accepts query params: periodStart, periodEnd (ISO date strings)
+ * 
+ * @query periodStart - (Optional) Period start date as UTC date string (e.g., "2026-01-01")
+ * @query periodEnd - (Optional) Period end date as UTC date string (e.g., "2026-01-31")
+ * 
+ * @example
+ * // ✅ Correct usage - pass simple UTC date strings
+ * fetch(`/api/credits/spent?periodStart=2026-01-01&periodEnd=2026-01-31`);
+ * 
+ * @important
+ * All date strings are interpreted as UTC dates at midnight (00:00:00.000Z).
+ * Frontend should pass simple date strings like "2026-01-01", which will be
+ * treated as "2026-01-01T00:00:00.000Z" in UTC timezone.
  */
 export async function GET(request: Request) {
   try {
@@ -30,6 +41,8 @@ export async function GET(request: Request) {
     let periodStart: Date | undefined;
     let periodEnd: Date | undefined;
 
+    // IMPORTANT: Client passes simple UTC date strings (e.g., "2026-01-01")
+    // which are interpreted as UTC midnight ("2026-01-01T00:00:00.000Z")
     if (periodStartParam) {
       periodStart = new Date(periodStartParam);
       if (isNaN(periodStart.getTime())) {
