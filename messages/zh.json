@@ -945,17 +945,11 @@
       "title": "统计",
       "subtitle": "MkSaaS 相关的数字",
       "description": "MkSaaS 可让您在几天内轻松构建您的 AI SaaS",
-      "items": {
-        "item-1": {
-          "title": "GitHub 上的星星"
-        },
-        "item-2": {
-          "title": "使用 MkSaaS 的活跃用户"
-        },
-        "item-3": {
-          "title": "使用 MkSaaS 启动的应用"
-        }
-      }
+      "items": [
+        { "value": "+1200", "label": "GitHub 上的星星" },
+        { "value": "22 Million", "label": "使用 MkSaaS 的活跃用户" },
+        { "value": "+500", "label": "使用 MkSaaS 启动的应用" }
+      ]
     },
     "calltoaction": {
       "title": "开始构建",

@@ -945,17 +945,11 @@
       "title": "Stats",
       "subtitle": "MkSaaS in numbers",
       "description": "MkSaaS lets you make AI SaaS in days, simply and effortlessly",
-      "items": {
-        "item-1": {
-          "title": "Stars on GitHub"
-        },
-        "item-2": {
-          "title": "Active Users"
-        },
-        "item-3": {
-          "title": "Powered Apps"
-        }
-      }
+      "items": [
+        { "value": "+1200", "label": "Stars on GitHub" },
+        { "value": "22 Million", "label": "Active Users" },
+        { "value": "+500", "label": "Powered Apps" }
+      ]
     },
     "calltoaction": {
       "title": "Start Building",

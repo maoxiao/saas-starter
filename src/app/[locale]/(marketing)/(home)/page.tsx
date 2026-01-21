@@ -16,6 +16,7 @@ import { constructMetadata } from '@/lib/metadata';
 import { getFaqItems } from '@/lib/faq-helpers';
 import { getFeatureItems } from '@/lib/feature-helpers';
 import { getIntegrationItems } from '@/lib/integration-helpers';
+import { getStatItems } from '@/lib/stats-helpers';
 import { getTestimonialItems } from '@/lib/testimonial-helpers';
 import type { Metadata } from 'next';
 import type { Locale } from 'next-intl';
@@ -65,6 +66,10 @@ export default async function HomePage(props: HomePageProps) {
   const testimonialsT = await getTranslations('HomePage.testimonials');
   const testimonialItems = getTestimonialItems(testimonialsT as any);
 
+  // Fetch Stats data using helper function - pass translation object
+  const statsT = await getTranslations('HomePage.stats');
+  const statItems = getStatItems(statsT as any);
+
   return (
     <>
       <div className="flex flex-col">
@@ -72,7 +77,12 @@ export default async function HomePage(props: HomePageProps) {
 
         <LogoCloud />
 
-        <StatsSection />
+        <StatsSection
+          title={statsT('title')}
+          subtitle={statsT('subtitle')}
+          description={statsT('description')}
+          items={statItems}
+        />
 
         <IntegrationSection
           title={integrationT('title')}
