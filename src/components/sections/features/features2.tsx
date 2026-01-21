@@ -5,15 +5,21 @@ import {
   MailIcon,
   ZapIcon,
 } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { getTranslations } from 'next-intl/server';
 import Image from 'next/image';
+
+// Icon array to match with items by index
+const icons = [MailIcon, ZapIcon, ActivityIcon, DraftingCompassIcon];
 
 /**
  * https://nsui.irung.me/features
  * pnpm dlx shadcn@canary add https://nsui.irung.me/r/features-5.json
  */
-export default function Features2Section() {
-  const t = useTranslations('HomePage.features2');
+export default async function Features2Section() {
+  const t = await getTranslations('HomePage.features2');
+
+  // Get items array using raw()
+  const items = (t.raw('items') as Array<{ title: string }>) || [];
 
   return (
     <section id="features2" className="px-4 py-16">
@@ -34,22 +40,15 @@ export default function Features2Section() {
             </div>
 
             <ul className="mt-8 divide-y border-y *:flex *:items-center *:gap-3 *:py-3">
-              <li>
-                <MailIcon className="size-5" />
-                {t('feature-1')}
-              </li>
-              <li>
-                <ZapIcon className="size-5" />
-                {t('feature-2')}
-              </li>
-              <li>
-                <ActivityIcon className="size-5" />
-                {t('feature-3')}
-              </li>
-              <li>
-                <DraftingCompassIcon className="size-5" />
-                {t('feature-4')}
-              </li>
+              {items.map((item, index) => {
+                const Icon = icons[index] || MailIcon;
+                return (
+                  <li key={index}>
+                    <Icon className="size-5" />
+                    {item.title}
+                  </li>
+                );
+              })}
             </ul>
           </div>
 

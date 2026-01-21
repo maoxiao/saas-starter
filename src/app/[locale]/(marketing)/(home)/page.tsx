@@ -14,6 +14,7 @@ import CrispChat from '@/components/layout/crisp-chat';
 import { NewsletterCard } from '@/components/newsletter/newsletter-card';
 import { constructMetadata } from '@/lib/metadata';
 import { getFaqItems } from '@/lib/faq-helpers';
+import { getFeatureItems } from '@/lib/feature-helpers';
 import type { Metadata } from 'next';
 import type { Locale } from 'next-intl';
 import { getTranslations } from 'next-intl/server';
@@ -50,6 +51,10 @@ export default async function HomePage(props: HomePageProps) {
   const faqT = await getTranslations('HomePage.faqs');
   const faqItems = getFaqItems(faqT as any);
 
+  // Fetch Features data using helper function - pass translation object
+  const featuresT = await getTranslations('HomePage.features');
+  const featureItems = getFeatureItems(featuresT as any);
+
   return (
     <>
       <div className="flex flex-col">
@@ -61,7 +66,12 @@ export default async function HomePage(props: HomePageProps) {
 
         <IntegrationSection />
 
-        <FeaturesSection />
+        <FeaturesSection
+          title={featuresT('title')}
+          subtitle={featuresT('subtitle')}
+          description={featuresT('description')}
+          items={featureItems}
+        />
 
         <Features2Section />
 
