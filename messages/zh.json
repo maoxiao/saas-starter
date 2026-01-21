@@ -832,28 +832,28 @@
     "faqs": {
       "title": "常见问题",
       "subtitle": "如果您有任何问题，请随时联系我们",
-      "items": {
-        "item-1": {
+      "items": [
+        {
           "question": "你们提供免费试用吗？",
           "answer": "是的，我们提供7天的免费试用。"
         },
-        "item-2": {
+        {
           "question": "如何取消我的订阅？",
           "answer": "您可以通过访问账单页面取消您的订阅。"
         },
-        "item-3": {
+        {
           "question": "我可以更改我的计划吗？",
           "answer": "是的，您可以随时通过访问账单页面更改您的计划。"
         },
-        "item-4": {
+        {
           "question": "你们的退款政策是什么？",
           "answer": "是的，我们提供30天的退款保证。"
         },
-        "item-5": {
+        {
           "question": "找不到您想问的问题？",
           "answer": "请联系我们的客户支持团队，邮箱地址：support@mksaas.com"
         }
-      }
+      ]
     },
     "testimonials": {
       "title": "客户评价",

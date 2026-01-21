@@ -1,49 +1,41 @@
 import { HeaderSection } from '@/components/layout/header-section';
-import { getTranslations } from 'next-intl/server';
 import { FaqAccordion } from '@/components/sections/faqs/faq-accordion';
+import type { FaqItem, FaqSectionProps } from '@/lib/faq-helpers';
 
-type FAQItem = {
-  id: string;
-  question: string;
-  answer: string;
-};
+// Re-export types for convenience
+export type { FaqItem, FaqSectionProps } from '@/lib/faq-helpers';
 
-export default async function FaqSection() {
-  const t = await getTranslations('HomePage.faqs');
-
-  const faqItems: FAQItem[] = [
-    {
-      id: 'item-1',
-      question: t('items.item-1.question'),
-      answer: t('items.item-1.answer'),
-    },
-    {
-      id: 'item-2',
-      question: t('items.item-2.question'),
-      answer: t('items.item-2.answer'),
-    },
-    {
-      id: 'item-3',
-      question: t('items.item-3.question'),
-      answer: t('items.item-3.answer'),
-    },
-    {
-      id: 'item-4',
-      question: t('items.item-4.question'),
-      answer: t('items.item-4.answer'),
-    },
-    {
-      id: 'item-5',
-      question: t('items.item-5.question'),
-      answer: t('items.item-5.answer'),
-    },
-  ];
-
+/**
+ * FaqSection - A data-driven FAQ component
+ *
+ * This component follows the "Smart Parent, Dumb Child" pattern:
+ * - The parent page is responsible for fetching/assembling FAQ data
+ * - This component only renders the data it receives via props
+ *
+ * @example
+ * // In page.tsx
+ * import { getFaqItems } from '@/lib/faq-helpers';
+ *
+ * const faqT = await getTranslations('HomePage.faqs');
+ * const items = getFaqItems(faqT as any);
+ *
+ * <FaqSection
+ *   title={faqT('title')}
+ *   subtitle={faqT('subtitle')}
+ *   items={items}
+ * />
+ */
+export default function FaqSection({
+  title,
+  subtitle,
+  items,
+  className,
+}: FaqSectionProps) {
   return (
-    <section id="faqs" className="px-4 py-16">
+    <section id="faqs" className={`px-4 py-16 ${className ?? ''}`}>
       {/* SEO: Hidden semantic content for crawlers */}
       <div className="sr-only">
-        {faqItems.map((item) => (
+        {items.map((item) => (
           <div key={item.id}>
             <h2>{item.question}</h2>
             <p>{item.answer}</p>
@@ -58,7 +50,7 @@ export default async function FaqSection() {
           __html: JSON.stringify({
             '@context': 'https://schema.org',
             '@type': 'FAQPage',
-            mainEntity: faqItems.map((item) => ({
+            mainEntity: items.map((item) => ({
               '@type': 'Question',
               name: item.question,
               acceptedAnswer: {
@@ -72,13 +64,13 @@ export default async function FaqSection() {
 
       <div className="mx-auto max-w-4xl">
         <HeaderSection
-          title={t('title')}
+          title={title}
           titleAs="h2"
-          subtitle={t('subtitle')}
+          subtitle={subtitle}
           subtitleAs="p"
         />
 
-        <FaqAccordion faqData={faqItems} />
+        <FaqAccordion faqData={items} />
       </div>
     </section>
   );

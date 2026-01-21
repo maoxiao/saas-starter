@@ -13,6 +13,7 @@ import TestimonialsSection from '@/components/sections/testimonials/testimonials
 import CrispChat from '@/components/layout/crisp-chat';
 import { NewsletterCard } from '@/components/newsletter/newsletter-card';
 import { constructMetadata } from '@/lib/metadata';
+import { getFaqItems } from '@/lib/faq-helpers';
 import type { Metadata } from 'next';
 import type { Locale } from 'next-intl';
 import { getTranslations } from 'next-intl/server';
@@ -45,6 +46,10 @@ export default async function HomePage(props: HomePageProps) {
   const { locale } = params;
   const t = await getTranslations('HomePage');
 
+  // Fetch FAQ data using helper function - pass translation object
+  const faqT = await getTranslations('HomePage.faqs');
+  const faqItems = getFaqItems(faqT as any);
+
   return (
     <>
       <div className="flex flex-col">
@@ -66,7 +71,11 @@ export default async function HomePage(props: HomePageProps) {
 
         <PricingSection />
 
-        <FaqSection />
+        <FaqSection
+          title={faqT('title')}
+          subtitle={faqT('subtitle')}
+          items={faqItems}
+        />
 
         <CallToActionSection />
 
@@ -79,3 +88,4 @@ export default async function HomePage(props: HomePageProps) {
     </>
   );
 }
+

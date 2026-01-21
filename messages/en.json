@@ -832,28 +832,28 @@
     "faqs": {
       "title": "FAQ",
       "subtitle": "Frequently Asked Questions",
-      "items": {
-        "item-1": {
+      "items": [
+        {
           "question": "Do you offer a free trial?",
           "answer": "Yes, we offer a 7-day free trial."
         },
-        "item-2": {
+        {
           "question": "How do I cancel my subscription?",
           "answer": "You can cancel your subscription by visiting the billing page."
         },
-        "item-3": {
+        {
           "question": "Can I change my plan?",
           "answer": "Yes, you can change your plan at any time by visiting the billing page."
         },
-        "item-4": {
+        {
           "question": "What is the refund policy?",
           "answer": "We offer a 30-day money-back guarantee if you are not happy with our product."
         },
-        "item-5": {
+        {
           "question": "Can't find what you're looking for?",
           "answer": "Please contact our customer support team at support@mksaas.com"
         }
-      }
+      ]
     },
     "testimonials": {
       "title": "Testimonials",
