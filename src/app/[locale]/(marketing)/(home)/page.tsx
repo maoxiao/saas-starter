@@ -47,8 +47,6 @@ interface HomePageProps {
 
 export default async function HomePage(props: HomePageProps) {
   const params = await props.params;
-  const { locale } = params;
-  const t = await getTranslations('HomePage');
 
   // Fetch FAQ data using helper function - pass translation object
   const faqT = await getTranslations('HomePage.faqs');
