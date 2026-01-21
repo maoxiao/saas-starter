@@ -15,6 +15,7 @@ import { NewsletterCard } from '@/components/newsletter/newsletter-card';
 import { constructMetadata } from '@/lib/metadata';
 import { getFaqItems } from '@/lib/faq-helpers';
 import { getFeatureItems } from '@/lib/feature-helpers';
+import { getIntegrationItems } from '@/lib/integration-helpers';
 import { getTestimonialItems } from '@/lib/testimonial-helpers';
 import type { Metadata } from 'next';
 import type { Locale } from 'next-intl';
@@ -56,6 +57,10 @@ export default async function HomePage(props: HomePageProps) {
   const featuresT = await getTranslations('HomePage.features');
   const featureItems = getFeatureItems(featuresT as any);
 
+  // Fetch Integration data using helper function - pass translation object
+  const integrationT = await getTranslations('HomePage.integration');
+  const integrationItems = getIntegrationItems(integrationT as any);
+
   // Fetch Testimonials data using helper function - pass translation object
   const testimonialsT = await getTranslations('HomePage.testimonials');
   const testimonialItems = getTestimonialItems(testimonialsT as any);
@@ -69,7 +74,13 @@ export default async function HomePage(props: HomePageProps) {
 
         <StatsSection />
 
-        <IntegrationSection />
+        <IntegrationSection
+          title={integrationT('title')}
+          subtitle={integrationT('subtitle')}
+          description={integrationT('description')}
+          learnMore={integrationT('learnMore')}
+          items={integrationItems}
+        />
 
         <FeaturesSection
           title={featuresT('title')}
