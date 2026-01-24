@@ -1,8 +1,8 @@
 import { websiteConfig } from '@/config/website';
 import { getMessagesForLocale } from '@/i18n/messages';
 import { routing } from '@/i18n/routing';
-import type { ReactElement } from 'react';
 import type { Locale, Messages } from 'next-intl';
+import type { ReactElement } from 'react';
 import { ResendProvider } from './provider/resend';
 import {
   type EmailTemplate,
