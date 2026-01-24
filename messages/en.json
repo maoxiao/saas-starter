@@ -333,31 +333,6 @@
       "docs": {
         "title": "Docs"
       },
-      "ai": {
-        "title": "AI Tools",
-        "items": {
-          "text": {
-            "title": "AI Text",
-            "description": "Show how to use AI to write stunning text"
-          },
-          "image": {
-            "title": "AI Image",
-            "description": "Show how to use AI to generate beautiful images"
-          },
-          "chat": {
-            "title": "AI Chat",
-            "description": "Show how to use AI to chat with your customers"
-          },
-          "video": {
-            "title": "AI Video",
-            "description": "Show how to use AI to generate amazing videos"
-          },
-          "audio": {
-            "title": "AI Audio",
-            "description": "Show how to use AI to generate wonderful audio"
-          }
-        }
-      },
       "pages": {
         "title": "Pages",
         "items": {
@@ -392,65 +367,6 @@
           "termsOfService": {
             "title": "Terms of Service",
             "description": "The legal agreement between you and our company"
-          }
-        }
-      },
-      "blocks": {
-        "title": "Blocks",
-        "items": {
-          "magicui": {
-            "title": "MagicUI Blocks"
-          },
-          "hero-section": {
-            "title": "Hero Blocks"
-          },
-          "logo-cloud": {
-            "title": "Logo Cloud Blocks"
-          },
-          "integrations": {
-            "title": "Integrations Blocks"
-          },
-          "features": {
-            "title": "Features Blocks"
-          },
-          "content": {
-            "title": "Content Blocks"
-          },
-          "stats": {
-            "title": "Stats Blocks"
-          },
-          "team": {
-            "title": "Team Blocks"
-          },
-          "testimonials": {
-            "title": "Testimonials Blocks"
-          },
-          "callToAction": {
-            "title": "Call to Action Blocks"
-          },
-          "footer": {
-            "title": "Footer Blocks"
-          },
-          "pricing": {
-            "title": "Pricing Blocks"
-          },
-          "comparator": {
-            "title": "Comparator Blocks"
-          },
-          "faq": {
-            "title": "FAQ Blocks"
-          },
-          "login": {
-            "title": "Login Blocks"
-          },
-          "signup": {
-            "title": "Signup Blocks"
-          },
-          "forgot-password": {
-            "title": "Forgot Password Blocks"
-          },
-          "contact": {
-            "title": "Contact Blocks"
           }
         }
       }
@@ -1040,70 +956,5 @@
       "primaryButton": "Get Started",
       "secondaryButton": "See Demo"
     }
-  },
-  "AITextPage": {
-    "title": "AI Text Demo",
-    "description": "Analyze web content with AI to extract key information, features, and insights",
-    "content": "Web Content Analyzer",
-    "subtitle": "Enter a website URL to get AI-powered analysis of its content",
-    "analyzer": {
-      "title": "Web Content Analyzer",
-      "description": "Analyze any website content using AI to extract structured information",
-      "placeholder": "Enter website URL (e.g., https://example.com)",
-      "button": "Analyze Website",
-      "loading": {
-        "scraping": "Scraping website content...",
-        "analyzing": "Analyzing content with AI..."
-      },
-      "results": {
-        "title": "Analysis Results",
-        "newAnalysis": "Analyze Another Website",
-        "sections": {
-          "title": "Title",
-          "description": "Description",
-          "introduction": "Introduction",
-          "features": "Features",
-          "pricing": "Pricing",
-          "useCases": "Use Cases",
-          "screenshot": "Website Screenshot"
-        }
-      },
-      "errors": {
-        "invalidUrl": "Please enter a valid URL starting with http:// or https://",
-        "analysisError": "Failed to analyze website. Please try again.",
-        "networkError": "Network error. Please check your connection and try again.",
-        "insufficientCredits": "Insufficient credits. Please purchase more credits to continue."
-      }
-    },
-    "features": {
-      "scraping": {
-        "title": "Smart Web Scraping",
-        "description": "Advanced web scraping technology extracts clean, structured content from any website"
-      },
-      "analysis": {
-        "title": "AI-Powered Analysis",
-        "description": "Intelligent AI analysis extracts key insights, features, and structured information"
-      },
-      "results": {
-        "title": "Structured Results",
-        "description": "Get organized, easy-to-read results with clear sections and actionable insights"
-      }
-    }
-  },
-  "AIImagePage": {
-    "title": "AI Image",
-    "description": "MkSaaS lets you make AI SaaS in days, simply and effortlessly"
-  },
-  "AIChatPage": {
-    "title": "AI Chat",
-    "description": "MkSaaS lets you make AI SaaS in days, simply and effortlessly"
-  },
-  "AIVideoPage": {
-    "title": "AI Video",
-    "description": "MkSaaS lets you make AI SaaS in days, simply and effortlessly"
-  },
-  "AIAudioPage": {
-    "title": "AI Audio",
-    "description": "MkSaaS lets you make AI SaaS in days, simply and effortlessly"
   }
 }

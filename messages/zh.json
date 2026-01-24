@@ -333,31 +333,6 @@
       "docs": {
         "title": "文档"
       },
-      "ai": {
-        "title": "AI 工具",
-        "items": {
-          "text": {
-            "title": "AI 文本",
-            "description": "展示如何使用 AI 生成精彩文本"
-          },
-          "image": {
-            "title": "AI 图像",
-            "description": "展示如何使用 AI 生成精美图像"
-          },
-          "chat": {
-            "title": "AI 聊天",
-            "description": "展示如何使用 AI 与客户聊天"
-          },
-          "video": {
-            "title": "AI 视频",
-            "description": "展示如何使用 AI 生成惊人视频"
-          },
-          "audio": {
-            "title": "AI 音频",
-            "description": "展示如何使用 AI 生成动听音频"
-          }
-        }
-      },
       "pages": {
         "title": "内置页面",
         "items": {
@@ -392,65 +367,6 @@
           "termsOfService": {
             "title": "服务条款",
             "description": "关于您与我们公司之间的法律协议和条款"
-          }
-        }
-      },
-      "blocks": {
-        "title": "内置组件",
-        "items": {
-          "magicui": {
-            "title": "MagicUI 组件"
-          },
-          "hero-section": {
-            "title": "Hero 组件"
-          },
-          "logo-cloud": {
-            "title": "Logo Cloud 组件"
-          },
-          "features": {
-            "title": "Features 组件"
-          },
-          "integrations": {
-            "title": "Integrations 组件"
-          },
-          "content": {
-            "title": "Content 组件"
-          },
-          "stats": {
-            "title": "Stats 组件"
-          },
-          "team": {
-            "title": "Team 组件"
-          },
-          "testimonials": {
-            "title": "Testimonials 组件"
-          },
-          "callToAction": {
-            "title": "Call to Action 组件"
-          },
-          "footer": {
-            "title": "Footer 组件"
-          },
-          "pricing": {
-            "title": "Pricing 组件"
-          },
-          "comparator": {
-            "title": "Comparator 组件"
-          },
-          "faq": {
-            "title": "FAQ 组件"
-          },
-          "login": {
-            "title": "Login 组件"
-          },
-          "signup": {
-            "title": "Signup 组件"
-          },
-          "forgot-password": {
-            "title": "Forgot Password 组件"
-          },
-          "contact": {
-            "title": "Contact 组件"
           }
         }
       }
@@ -1040,70 +956,5 @@
       "primaryButton": "开始使用",
       "secondaryButton": "查看演示"
     }
-  },
-  "AITextPage": {
-    "title": "AI 文本",
-    "description": "使用 AI 分析网页内容，提取关键信息、功能和见解",
-    "content": "网页内容分析器",
-    "subtitle": "输入网站 URL，使用 AI 分析其内容",
-    "analyzer": {
-      "title": "网页内容分析器",
-      "description": "使用 AI 分析任何网站的内容，提取结构化信息",
-      "placeholder": "输入网站 URL（例如：https://example.com）",
-      "button": "分析网站",
-      "loading": {
-        "scraping": "正在抓取网站内容...",
-        "analyzing": "正在使用 AI 分析内容..."
-      },
-      "results": {
-        "title": "分析结果",
-        "newAnalysis": "分析其他网站",
-        "sections": {
-          "title": "标题",
-          "description": "描述",
-          "introduction": "介绍",
-          "features": "功能",
-          "pricing": "定价",
-          "useCases": "使用场景",
-          "screenshot": "网站截图"
-        }
-      },
-      "errors": {
-        "invalidUrl": "请输入以 http:// 或 https:// 开头的有效 URL",
-        "analysisError": "分析网站失败，请重试。",
-        "networkError": "网络错误，请检查您的连接并重试。",
-        "insufficientCredits": "积分不足，请购买更多积分以继续。"
-      }
-    },
-    "features": {
-      "scraping": {
-        "title": "智能网页抓取",
-        "description": "先进的网页抓取技术从任何网站提取干净、结构化的内容"
-      },
-      "analysis": {
-        "title": "AI 驱动分析",
-        "description": "智能 AI 分析提取关键见解、功能和结构化信息"
-      },
-      "results": {
-        "title": "结构化结果",
-        "description": "获得有组织、易于阅读的结果，包含清晰的部分和可操作的见解"
-      }
-    }
-  },
-  "AIImagePage": {
-    "title": "AI 图片",
-    "description": "MkSaaS 让您在几天内轻松构建您的 AI SaaS，简单且毫不费力"
-  },
-  "AIChatPage": {
-    "title": "AI 聊天",
-    "description": "MkSaaS 让您在几天内轻松构建您的 AI SaaS，简单且毫不费力"
-  },
-  "AIVideoPage": {
-    "title": "AI 视频",
-    "description": "MkSaaS 让您在几天内轻松构建您的 AI SaaS，简单且毫不费力"
-  },
-  "AIAudioPage": {
-    "title": "AI 音频",
-    "description": "MkSaaS 让您在几天内轻松构建您的 AI SaaS，简单且毫不费力"
   }
 }

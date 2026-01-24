@@ -39,33 +39,6 @@ export enum Routes {
 
   // payment processing
   Payment = '/payment',
-
-  // AI routes
-  AIText = '/ai/text',
-  AIImage = '/ai/image',
-  AIChat = '/ai/chat',
-  AIVideo = '/ai/video',
-  AIAudio = '/ai/audio',
-
-  // block routes
-  MagicuiBlocks = '/magicui',
-  HeroBlocks = '/blocks/hero-section',
-  LogoCloudBlocks = '/blocks/logo-cloud',
-  FeaturesBlocks = '/blocks/features',
-  IntegrationsBlocks = '/blocks/integrations',
-  ContentBlocks = '/blocks/content',
-  StatsBlocks = '/blocks/stats',
-  TeamBlocks = '/blocks/team',
-  TestimonialsBlocks = '/blocks/testimonials',
-  CallToActionBlocks = '/blocks/call-to-action',
-  FooterBlocks = '/blocks/footer',
-  PricingBlocks = '/blocks/pricing',
-  ComparatorBlocks = '/blocks/comparator',
-  FAQBlocks = '/blocks/faqs',
-  LoginBlocks = '/blocks/login',
-  SignupBlocks = '/blocks/sign-up',
-  ForgotPasswordBlocks = '/blocks/forgot-password',
-  ContactBlocks = '/blocks/contact',
 }
 
 /**
