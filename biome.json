@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.3.12/schema.json",
   "vcs": {
     "enabled": false,
     "clientKind": "git",
@@ -7,32 +7,33 @@
   },
   "files": {
     "ignoreUnknown": true,
-    "ignore": [
-      ".next/**",
-      ".open-next/**",
-      ".wrangler/**",
-      ".cursor/**",
-      ".claude/**",
-      ".kiro/**",
-      ".conductor/**",
-      ".vscode/**",
-      ".source/**",
-      "node_modules/**",
-      "dist/**",
-      "build/**",
-      "src/db/**",
-      "tailwind.config.ts",
-      "src/components/ui/*.tsx",
-      "src/components/magicui/*.tsx",
-      "src/components/diceui/*.tsx",
-      "src/components/animate-ui/*.tsx",
-      "src/components/tailark/*.tsx",
-      "src/components/ai-elements/*.tsx",
-      "src/components/data-table/**",
-      "src/app/[[]locale]/preview/**",
-      "src/payment/types.ts",
-      "src/credits/types.ts",
-      "src/types/index.d.ts"
+    "includes": [
+      "**",
+      "!.next",
+      "!.open-next",
+      "!.wrangler",
+      "!.cursor",
+      "!.claude",
+      "!.kiro",
+      "!.conductor",
+      "!.vscode",
+      "!.source",
+      "!node_modules",
+      "!dist",
+      "!build",
+      "!src/db",
+      "!tailwind.config.ts",
+      "!src/components/ui",
+      "!src/components/magicui",
+      "!src/components/diceui",
+      "!src/components/animate-ui",
+      "!src/components/tailark",
+      "!src/components/ai-elements",
+      "!src/components/data-table",
+      "!src/app/\\[locale\\]/preview",
+      "!src/payment/types.ts",
+      "!src/credits/types.ts",
+      "!src/types/index.d.ts"
     ]
   },
   "formatter": {
@@ -43,9 +44,7 @@
     "formatWithErrors": true,
     "useEditorconfig": true
   },
-  "organizeImports": {
-    "enabled": true
-  },
+  "assist": { "actions": { "source": { "organizeImports": "on" } } },
   "linter": {
     "enabled": true,
     "rules": {
@@ -65,8 +64,11 @@
       "style": {
         "useTemplate": "off",
         "noNonNullAssertion": "off",
-        "useShorthandArrayType": "off",
-        "useNodejsImportProtocol": "off"
+        "useNodejsImportProtocol": "off",
+        "useConsistentArrayType": {
+          "level": "off",
+          "options": { "syntax": "shorthand" }
+        }
       },
       "a11y": {
         "useValidAnchor": "off",
@@ -80,6 +82,12 @@
       "quoteStyle": "single",
       "trailingCommas": "es5",
       "semicolons": "always"
+    }
+  },
+  "css": {
+    "parser": {
+      "cssModules": true,
+      "tailwindDirectives": true
     }
   }
 }
