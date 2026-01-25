@@ -131,7 +131,10 @@ export default async function DocPage({ params }: DocPageProps) {
               a: ({
                 href,
                 ...props
-              }: { href?: string; [key: string]: any }) => {
+              }: {
+                href?: string;
+                [key: string]: any;
+              }) => {
                 const found = source.getPageByHref(href ?? '');
 
                 if (!found) return <Link href={href} {...props} />;

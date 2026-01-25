@@ -1,6 +1,6 @@
 'use client';
-import { type Variants, motion } from 'motion/react';
-import type { ReactNode } from 'react';
+import type { ComponentType, ElementType, ReactNode } from 'react';
+import { motion, Variants } from 'motion/react';
 import React from 'react';
 
 export type PresetType =
@@ -23,8 +23,8 @@ export type AnimatedGroupProps = {
     item?: Variants;
   };
   preset?: PresetType;
-  as?: React.ElementType;
-  asChild?: React.ElementType;
+  as?: ElementType;
+  asChild?: ElementType;
 };
 
 const defaultContainerVariants: Variants = {
@@ -115,14 +115,20 @@ function AnimatedGroup({
   const containerVariants = variants?.container || selectedVariants.container;
   const itemVariants = variants?.item || selectedVariants.item;
 
-  const MotionComponent = motion.create(as);
+  const isStringElement = typeof as === 'string';
+  const MotionComponent = isStringElement
+    ? motion.create(as)
+    : (motion.create('div') as ComponentType<{ className?: string; variants?: Variants }>);
 
-  const MotionChild = motion.create(asChild);
+  const isChildStringElement = typeof asChild === 'string';
+  const MotionChild = isChildStringElement
+    ? motion.create(asChild)
+    : (motion.create('div') as ComponentType<{ variants?: Variants }>);
 
   return (
     <MotionComponent
-      initial="hidden"
-      animate="visible"
+      initial='hidden'
+      animate='visible'
       variants={containerVariants}
       className={className}
     >
