@@ -113,7 +113,7 @@
     "react-social-media-embed": "^2.5.18",
     "react-tweet": "^3.3.0",
     "react-use-measure": "^2.1.7",
-    "recharts": "^2.15.4",
+    "recharts": "2.15.4",
     "resend": "^6.8.0",
     "s3mini": "^0.9.1",
     "shiki": "^3.21.0",
