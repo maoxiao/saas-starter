@@ -1,10 +1,10 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import { AnimatePresence, motion } from "motion/react";
-import { Play, XIcon } from "lucide-react";
+import { useState } from "react"
+import { Play, XIcon } from "lucide-react"
+import { AnimatePresence, motion } from "motion/react"
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils"
 
 type AnimationStyle =
   | "from-bottom"
@@ -14,14 +14,14 @@ type AnimationStyle =
   | "from-right"
   | "fade"
   | "top-in-bottom-out"
-  | "left-in-right-out";
+  | "left-in-right-out"
 
 interface HeroVideoProps {
-  animationStyle?: AnimationStyle;
-  videoSrc: string;
-  thumbnailSrc: string;
-  thumbnailAlt?: string;
-  className?: string;
+  animationStyle?: AnimationStyle
+  videoSrc: string
+  thumbnailSrc: string
+  thumbnailAlt?: string
+  className?: string
 }
 
 const animationVariants = {
@@ -65,22 +65,24 @@ const animationVariants = {
     animate: { x: 0, opacity: 1 },
     exit: { x: "100%", opacity: 0 },
   },
-};
+}
 
-export default function HeroVideoDialog({
+export function HeroVideoDialog({
   animationStyle = "from-center",
   videoSrc,
   thumbnailSrc,
   thumbnailAlt = "Video thumbnail",
   className,
 }: HeroVideoProps) {
-  const [isVideoOpen, setIsVideoOpen] = useState(false);
-  const selectedAnimation = animationVariants[animationStyle];
+  const [isVideoOpen, setIsVideoOpen] = useState(false)
+  const selectedAnimation = animationVariants[animationStyle]
 
   return (
     <div className={cn("relative", className)}>
-      <div
-        className="group relative cursor-pointer"
+      <button
+        type="button"
+        aria-label="Play video"
+        className="group relative cursor-pointer border-0 bg-transparent p-0"
         onClick={() => setIsVideoOpen(true)}
       >
         <img
@@ -91,9 +93,9 @@ export default function HeroVideoDialog({
           className="w-full rounded-md border shadow-lg transition-all duration-200 ease-out group-hover:brightness-[0.8]"
         />
         <div className="absolute inset-0 flex scale-[0.9] items-center justify-center rounded-2xl transition-all duration-200 ease-out group-hover:scale-100">
-          <div className="flex size-28 items-center justify-center rounded-full bg-primary/10 backdrop-blur-md">
+          <div className="bg-primary/10 flex size-28 items-center justify-center rounded-full backdrop-blur-md">
             <div
-              className={`relative flex size-20 scale-100 items-center justify-center rounded-full bg-gradient-to-b from-primary/30 to-primary shadow-md transition-all duration-200 ease-out group-hover:scale-[1.2]`}
+              className={`from-primary/30 to-primary relative flex size-20 scale-100 items-center justify-center rounded-full bg-gradient-to-b shadow-md transition-all duration-200 ease-out group-hover:scale-[1.2]`}
             >
               <Play
                 className="size-8 scale-100 fill-white text-white transition-transform duration-200 ease-out group-hover:scale-105"
@@ -105,12 +107,19 @@ export default function HeroVideoDialog({
             </div>
           </div>
         </div>
-      </div>
+      </button>
       <AnimatePresence>
         {isVideoOpen && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Escape" || e.key === "Enter" || e.key === " ") {
+                setIsVideoOpen(false)
+              }
+            }}
             onClick={() => setIsVideoOpen(false)}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md"
@@ -126,6 +135,7 @@ export default function HeroVideoDialog({
               <div className="relative isolate z-[1] size-full overflow-hidden rounded-2xl border-2 border-white">
                 <iframe
                   src={videoSrc}
+                  title="Hero Video player"
                   className="size-full rounded-2xl"
                   allowFullScreen
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -136,5 +146,5 @@ export default function HeroVideoDialog({
         )}
       </AnimatePresence>
     </div>
-  );
+  )
 }

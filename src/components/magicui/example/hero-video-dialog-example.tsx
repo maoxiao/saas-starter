@@ -1,4 +1,4 @@
-import HeroVideoDialog from "@/components/magicui/hero-video-dialog";
+import { HeroVideoDialog } from "@/components/magicui/hero-video-dialog";
 
 export function HeroVideoDialogDemoTopInBottomOut() {
   return (
